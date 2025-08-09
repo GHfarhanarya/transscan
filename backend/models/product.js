@@ -31,6 +31,14 @@ const Product = sequelize.define('Product', {
   promo_end: {
     type: DataTypes.DATEONLY,
     allowNull: true
+  },
+  image: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  image: {
+    type: DataTypes.STRING(500),
+    allowNull: true
   }
 }, {
   tableName: 'products',
