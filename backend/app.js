@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -6,6 +5,10 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
+// Pastikan dotenv dimuat paling atas untuk membaca file .env
+require('dotenv').config();
 
 const sequelize = require('./db');
 const Product = require('./models/product');
@@ -34,14 +37,14 @@ const upload = multer({
 });
 
 const app = express();
-const PORT = 3000;
+// Gunakan PORT dari .env atau default ke 3000
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
 // Buat direktori uploads jika belum ada
-const fs = require('fs');
 if (!fs.existsSync('uploads')){
     fs.mkdirSync('uploads');
 }
@@ -56,19 +59,16 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Employee ID dan password wajib diisi' });
     }
 
-    // Cari user berdasarkan employee_id
     const user = await User.findByPk(employee_id);
     if (!user) {
       return res.status(401).json({ message: 'Employee ID atau password salah' });
     }
 
-    // Verifikasi password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Employee ID atau password salah' });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { 
         employee_id: user.employee_id,
@@ -104,6 +104,22 @@ app.get('/verify-token', authenticateToken, (req, res) => {
     }
   });
 });
+
+
+// ===== USER ROUTES (BARU DITAMBAHKAN) =====
+// Ambil semua user (hanya admin)
+app.get('/users', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    // Ambil semua user, tapi jangan sertakan kolom password demi keamanan
+    const users = await User.findAll({ 
+      attributes: { exclude: ['password'] } 
+    });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 
 // ===== PRODUCT ROUTES =====
 
@@ -147,7 +163,8 @@ app.get('/product/scan/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      // PERBAIKAN: Gunakan BASE_URL dari .env
+      image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -166,7 +183,8 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      // PERBAIKAN: Gunakan BASE_URL dari .env
+      image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -191,7 +209,8 @@ app.get('/product/search/name/:name', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      // PERBAIKAN: Gunakan BASE_URL dari .env
+      image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -212,7 +231,6 @@ app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['ad
       return res.status(400).json({ message: "Tidak ada file yang diupload" });
     }
 
-    // Update image field
     await Product.update(
       { image: req.file.filename },
       { where: { barcode } }
@@ -220,13 +238,15 @@ app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['ad
 
     res.json({ 
       message: "Gambar produk berhasil diupdate",
-      imageUrl: `http://192.168.137.1:3000/uploads/${req.file.filename}`
+      // PERBAIKAN: Gunakan BASE_URL dari .env
+      imageUrl: `${process.env.BASE_URL}/uploads/${req.file.filename}`
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
+// Sinkronisasi database dan jalankan server
 sequelize.sync().then(() => {
   app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://0.0.0.0:${PORT}`));
 });
