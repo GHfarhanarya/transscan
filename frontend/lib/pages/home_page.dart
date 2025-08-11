@@ -22,13 +22,13 @@ class _HomePageState extends State<HomePage> {
   Future<void> scanBarcode() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
 
       if (!mounted) return;
-      
+
       // Untuk testing: tampilkan data dummy baik saat scan berhasil maupun dibatalkan
       if (barcodeScanRes == '-1') {
         // Jika dibatalkan, tetap tampilkan data dummy
@@ -85,10 +85,10 @@ class _HomePageState extends State<HomePage> {
 
     // Simulasi loading
     await Future.delayed(Duration(milliseconds: 500));
-    
+
     if (!mounted) return;
     setState(() => _isLoading = false);
-    
+
     if (!mounted) return;
     Navigator.push(
       context,
@@ -108,13 +108,13 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       String query = _searchController.text.trim().toLowerCase();
-      
+
       // Untuk testing: tampilkan dummy product untuk berbagai query
-      if (query.contains('le minerale') || 
-          query.contains('minerale') || 
+      if (query.contains('le minerale') ||
+          query.contains('minerale') ||
           query.contains('8124354388') ||
           query.contains('aqua') ||
           query.contains('8996001600115') ||
@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchProductAndNavigate(String query) async {
     try {
-      var url = Uri.parse('http://10.0.2.2:3000/product/$query');
+      var url = Uri.parse('http://192.168.137.1:3000/product/$query');
       var res = await http.get(url);
 
       if (!mounted) return;
@@ -149,7 +149,7 @@ class _HomePageState extends State<HomePage> {
       if (res.statusCode == 200) {
         Map<String, dynamic> product = json.decode(res.body);
         setState(() => _isLoading = false);
-        
+
         if (!mounted) return;
         Navigator.push(
           context,
@@ -272,22 +272,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(height: 30),
-            
+
             // Scan Button
             Container(
               height: 60,
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : scanBarcode,
-                icon: _isLoading 
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Icon(Icons.qr_code_scanner, size: 28),
+                icon: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(Icons.qr_code_scanner, size: 28),
                 label: Text(
                   _isLoading ? 'Memuat...' : 'Scan Barcode',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -303,7 +303,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(height: 30),
-            
+
             // Divider with "Atau" text
             Row(
               children: [
@@ -322,7 +322,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             SizedBox(height: 30),
-            
+
             // Search Section
             Container(
               padding: EdgeInsets.all(20),
@@ -364,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  
+
                   // Search Input
                   Container(
                     decoration: BoxDecoration(
@@ -374,35 +374,38 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Coba: Le Minerale, Aqua, Indomie, atau Teh Botol',
+                        hintText:
+                            'Coba: Le Minerale, Aqua, Indomie, atau Teh Botol',
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         hintStyle: TextStyle(color: Colors.grey[500]),
                       ),
                       onSubmitted: (_) => _searchProduct(),
                     ),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Search Button
                   Container(
                     width: double.infinity,
                     height: 45,
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _searchProduct,
-                      icon: _isLoading 
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Icon(Icons.search, size: 20),
+                      icon: _isLoading
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(Icons.search, size: 20),
                       label: Text(
                         _isLoading ? 'Mencari...' : 'Cari Produk',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[100],

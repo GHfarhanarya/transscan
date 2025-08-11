@@ -50,15 +50,42 @@ class ProductDetailPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.inventory_2,
-                  size: 80,
-                  color: Colors.grey[400],
-                ),
+                child: product['image'] != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          product['image'],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.inventory_2,
+                              size: 80,
+                              color: Colors.grey[400],
+                            );
+                          },
+                        ),
+                      )
+                    : Icon(
+                        Icons.inventory_2,
+                        size: 80,
+                        color: Colors.grey[400],
+                      ),
               ),
             ),
           ),
-          
+
           // Product Information Section
           Expanded(
             child: Container(
@@ -84,7 +111,7 @@ class ProductDetailPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 8),
-                  
+
                   // Barcode
                   Text(
                     product['barcode'] ?? '',
@@ -94,7 +121,7 @@ class ProductDetailPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 20),
-                  
+
                   // Price Section
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -120,7 +147,7 @@ class ProductDetailPage extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 8),
-                  
+
                   // Normal Price Label
                   Text(
                     'Harga Normal: Rp ${_formatPrice(product['priceNormal'])}',
@@ -130,7 +157,7 @@ class ProductDetailPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Stock Information
                   Row(
                     children: [
@@ -143,7 +170,7 @@ class ProductDetailPage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${product['stock']} botol',
+                        '${product['stock']} pcs',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.black87,
@@ -151,9 +178,9 @@ class ProductDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   Spacer(),
-                  
+
                   // Bottom Section with Logo and Scan Button
                   Column(
                     children: [
@@ -168,7 +195,7 @@ class ProductDetailPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 20),
-                      
+
                       // Scan Button
                       Container(
                         width: double.infinity,
@@ -219,8 +246,8 @@ class ProductDetailPage extends StatelessWidget {
 
   String _formatPrice(dynamic price) {
     return price.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    );
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]}.',
+        );
   }
 }
