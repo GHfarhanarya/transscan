@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
+import 'home_page.dart';
+import '../services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -80,11 +82,22 @@ class _SplashScreenState extends State<SplashScreen>
 
   _navigateToLogin() async {
     await Future.delayed(Duration(seconds: 3), () {});
+    
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
+      // Cek apakah user sudah login
+      bool isLoggedIn = await AuthService.isLoggedIn();
+      
+      if (isLoggedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
     }
   }
 

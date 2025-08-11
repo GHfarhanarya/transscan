@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -9,6 +12,84 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_idController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Employee ID dan Password wajib diisi'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'employee_id': _idController.text.trim(),
+          'password': _passwordController.text.trim(),
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        
+        // Simpan token dan user data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', responseData['token']);
+        await prefs.setString('employee_id', responseData['user']['employee_id']);
+        await prefs.setString('name', responseData['user']['name']);
+        await prefs.setString('role', responseData['user']['role']);
+
+        // Navigate ke home page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login berhasil! Selamat datang ${responseData['user']['name']}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorData['message'] ?? 'Login gagal'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                 child: TextField(
                   controller: _idController,
                   decoration: InputDecoration(
-                    hintText: 'ID',
+                    hintText: 'Employee ID (contoh: EMP004)',
                     border: InputBorder.none,
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -100,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: 'Password',
+                    hintText: 'Password (format: DDMMYYYY)',
                     border: InputBorder.none,
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -143,13 +224,7 @@ class _LoginPageState extends State<LoginPage> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  // Simulate login success
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
-                },
+                onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFE31837),
                   elevation: 0,
@@ -158,15 +233,24 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 15),
                 ),
-                child: Text(
-                  'Masuk',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                child: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        'Masuk',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
               ),
             ),
             SizedBox(height: 20), // Extra space at bottom

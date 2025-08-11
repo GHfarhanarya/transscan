@@ -3,6 +3,8 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'product_detail_page.dart';
+import '../services/auth_service.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -31,11 +33,12 @@ class _HomePageState extends State<HomePage> {
 
       // Untuk testing: tampilkan data dummy baik saat scan berhasil maupun dibatalkan
       if (barcodeScanRes == '-1') {
-        // Jika dibatalkan, tetap tampilkan data dummy
-        await _showDummyProduct();
+        // Jika dibatalkan, hentikan loading
+        setState(() => _isLoading = false);
+        return;
       } else {
-        // Jika ada hasil scan, coba fetch data real, jika gagal tampilkan dummy
-        await _fetchProductAndNavigate(barcodeScanRes);
+        // Fetch data dari database berdasarkan barcode yang discan
+        await _fetchProductFromScan(barcodeScanRes);
       }
     } catch (e) {
       if (!mounted) return;
@@ -139,9 +142,54 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Untuk scan barcode dari kamera
+  Future<void> _fetchProductFromScan(String barcode) async {
+    try {
+      setState(() => _isLoading = true);
+
+      final String url = 'http://10.0.2.2:3000/product/scan/$barcode';
+      final String? token = await AuthService.getToken();
+
+      var res = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        Map<String, dynamic> product = json.decode(res.body);
+        setState(() => _isLoading = false);
+
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(product: product),
+          ),
+        );
+      } else {
+        setState(() => _isLoading = false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produk tidak ditemukan')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Untuk search manual (barcode atau nama)
   Future<void> _fetchProductAndNavigate(String query) async {
     try {
-      var url = Uri.parse('http://192.168.137.1:3000/product/$query');
+      var url = Uri.parse('http://10.0.2.2:3000/product/$query');
       var res = await http.get(url);
 
       if (!mounted) return;
@@ -158,12 +206,16 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       } else {
-        // Jika produk tidak ditemukan, tampilkan data dummy untuk testing
-        await _showDummyProduct();
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Produk tidak ditemukan di database.')),
+        );
       }
     } catch (e) {
-      // Jika terjadi error (misal server tidak aktif), tampilkan data dummy
-      await _showDummyProduct();
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengambil data produk: $e')),
+      );
     }
   }
 
@@ -180,11 +232,12 @@ class _HomePageState extends State<HomePage> {
               child: Text('Batal'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context); // Close dialog
-                Navigator.pushNamedAndRemoveUntil(
+                await AuthService.logout();
+                Navigator.pushAndRemoveUntil(
                   context,
-                  '/login',
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                   (route) => false,
                 );
               },
