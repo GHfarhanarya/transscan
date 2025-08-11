@@ -3,6 +3,8 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'product_detail_page.dart';
+import '../services/auth_service.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -29,13 +31,13 @@ class _HomePageState extends State<HomePage> {
 
       if (!mounted) return;
       
-      // Untuk testing: tampilkan data dummy baik saat scan berhasil maupun dibatalkan
       if (barcodeScanRes == '-1') {
-        // Jika dibatalkan, tetap tampilkan data dummy
-        await _showDummyProduct();
+        // Jika dibatalkan, hentikan loading
+        setState(() => _isLoading = false);
+        return;
       } else {
-        // Jika ada hasil scan, coba fetch data real, jika gagal tampilkan dummy
-        await _fetchProductAndNavigate(barcodeScanRes);
+        // Fetch data dari database berdasarkan barcode yang discan
+        await _fetchProductFromScan(barcodeScanRes);
       }
     } catch (e) {
       if (!mounted) return;
@@ -44,58 +46,6 @@ class _HomePageState extends State<HomePage> {
         SnackBar(content: Text('Terjadi kesalahan saat scan: $e')),
       );
     }
-  }
-
-  Future<void> _showDummyProduct() async {
-    // Daftar data dummy untuk testing
-    List<Map<String, dynamic>> dummyProducts = [
-      {
-        'name': 'Le Minerale 600ml',
-        'barcode': '8124354388',
-        'priceNormal': 3000,
-        'pricePromo': 2800,
-        'stock': 125
-      },
-      {
-        'name': 'Aqua 600ml',
-        'barcode': '8996001600115',
-        'priceNormal': 2500,
-        'pricePromo': 2200,
-        'stock': 89
-      },
-      {
-        'name': 'Indomie Goreng',
-        'barcode': '8999999037260',
-        'priceNormal': 3500,
-        'pricePromo': 3200,
-        'stock': 156
-      },
-      {
-        'name': 'Teh Botol Sosro 350ml',
-        'barcode': '8999999501013',
-        'priceNormal': 4000,
-        'pricePromo': 3500,
-        'stock': 78
-      }
-    ];
-
-    // Pilih produk secara random
-    final random = DateTime.now().millisecond % dummyProducts.length;
-    Map<String, dynamic> selectedProduct = dummyProducts[random];
-
-    // Simulasi loading
-    await Future.delayed(Duration(milliseconds: 500));
-    
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-    
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailPage(product: selectedProduct),
-      ),
-    );
   }
 
   Future<void> _searchProduct() async {
@@ -110,26 +60,8 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isLoading = true);
     
     try {
-      String query = _searchController.text.trim().toLowerCase();
-      
-      // Untuk testing: tampilkan dummy product untuk berbagai query
-      if (query.contains('le minerale') || 
-          query.contains('minerale') || 
-          query.contains('8124354388') ||
-          query.contains('aqua') ||
-          query.contains('8996001600115') ||
-          query.contains('indomie') ||
-          query.contains('8999999037260') ||
-          query.contains('teh botol') ||
-          query.contains('sosro') ||
-          query.contains('8999999501013') ||
-          query.contains('air mineral') ||
-          query.contains('mie instan')) {
-        await _showDummyProduct();
-      } else {
-        // Coba fetch dari API, jika gagal tampilkan dummy juga
-        await _fetchProductAndNavigate(_searchController.text.trim());
-      }
+      // Langsung fetch dari API, tidak ada dummy logic
+      await _fetchProductAndNavigate(_searchController.text.trim());
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -139,10 +71,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _fetchProductAndNavigate(String query) async {
+  // Untuk scan barcode dari kamera
+  Future<void> _fetchProductFromScan(String barcode) async {
     try {
-      var url = Uri.parse('http://10.0.2.2:3000/product/$query');
-      var res = await http.get(url);
+      setState(() => _isLoading = true);
+      
+      final String url = 'http://10.0.2.2:3000/product/scan/$barcode';
+      final String? token = await AuthService.getToken();
+      
+      var res = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
 
       if (!mounted) return;
 
@@ -158,12 +100,71 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       } else {
-        // Jika produk tidak ditemukan, tampilkan data dummy untuk testing
-        await _showDummyProduct();
+        setState(() => _isLoading = false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Produk tidak ditemukan')),
+        );
       }
     } catch (e) {
-      // Jika terjadi error (misal server tidak aktif), tampilkan data dummy
-      await _showDummyProduct();
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Untuk search manual (barcode atau nama)
+  Future<void> _fetchProductAndNavigate(String query) async {
+    try {
+      setState(() => _isLoading = true);
+      String url;
+      
+      // Deteksi apakah query adalah barcode (hanya angka) atau nama produk
+      bool isBarcode = RegExp(r'^[0-9]+$').hasMatch(query);
+      
+      if (isBarcode) {
+        // Jika input hanya angka, gunakan search barcode
+        url = 'http://10.0.2.2:3000/product/search/barcode/$query';
+      } else {
+        // Jika input mengandung huruf, gunakan search nama
+        url = 'http://10.0.2.2:3000/product/search/name/$query';
+      }
+      
+      final String? token = await AuthService.getToken();
+      
+      var res = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (!mounted) return;
+
+      if (res.statusCode == 200) {
+        Map<String, dynamic> product = json.decode(res.body);
+        setState(() => _isLoading = false);
+        
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailPage(product: product),
+          ),
+        );
+      } else {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Produk tidak ditemukan di database.')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengambil data produk: $e')),
+      );
     }
   }
 
@@ -180,11 +181,12 @@ class _HomePageState extends State<HomePage> {
               child: Text('Batal'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context); // Close dialog
-                Navigator.pushNamedAndRemoveUntil(
+                await AuthService.logout();
+                Navigator.pushAndRemoveUntil(
                   context,
-                  '/login',
+                  MaterialPageRoute(builder: (context) => LoginPage()),
                   (route) => false,
                 );
               },
@@ -374,7 +376,7 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Coba: Le Minerale, Aqua, Indomie, atau Teh Botol',
+                        hintText: 'Masukkan nama produk atau barcode',
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         hintStyle: TextStyle(color: Colors.grey[500]),
