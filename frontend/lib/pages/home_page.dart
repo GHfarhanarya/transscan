@@ -1,7 +1,11 @@
+// lib/pages/home_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
 import 'login_page.dart';
@@ -21,6 +25,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  // Fungsi untuk scan barcode dari kamera
   Future<void> scanBarcode() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -31,15 +36,14 @@ class _HomePageState extends State<HomePage> {
 
       if (!mounted) return;
 
-      // Untuk testing: tampilkan data dummy baik saat scan berhasil maupun dibatalkan
       if (barcodeScanRes == '-1') {
-        // Jika dibatalkan, hentikan loading
+        // Jika scan dibatalkan oleh pengguna
         setState(() => _isLoading = false);
         return;
-      } else {
-        // Fetch data dari database berdasarkan barcode yang discan
-        await _fetchProductFromScan(barcodeScanRes);
       }
+
+      // Langsung fetch data dari server berdasarkan hasil scan
+      await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -49,60 +53,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _showDummyProduct() async {
-    // Daftar data dummy untuk testing
-    List<Map<String, dynamic>> dummyProducts = [
-      {
-        'name': 'Le Minerale 600ml',
-        'barcode': '8124354388',
-        'priceNormal': 3000,
-        'pricePromo': 2800,
-        'stock': 125
-      },
-      {
-        'name': 'Aqua 600ml',
-        'barcode': '8996001600115',
-        'priceNormal': 2500,
-        'pricePromo': 2200,
-        'stock': 89
-      },
-      {
-        'name': 'Indomie Goreng',
-        'barcode': '8999999037260',
-        'priceNormal': 3500,
-        'pricePromo': 3200,
-        'stock': 156
-      },
-      {
-        'name': 'Teh Botol Sosro 350ml',
-        'barcode': '8999999501013',
-        'priceNormal': 4000,
-        'pricePromo': 3500,
-        'stock': 78
-      }
-    ];
-
-    // Pilih produk secara random
-    final random = DateTime.now().millisecond % dummyProducts.length;
-    Map<String, dynamic> selectedProduct = dummyProducts[random];
-
-    // Simulasi loading
-    await Future.delayed(Duration(milliseconds: 500));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductDetailPage(product: selectedProduct),
-      ),
-    );
-  }
-
+  // Fungsi untuk mencari produk dari input manual
   Future<void> _searchProduct() async {
-    if (_searchController.text.trim().isEmpty) {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Masukkan nama produk atau barcode')),
       );
@@ -112,47 +66,32 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() => _isLoading = true);
 
-    try {
-      String query = _searchController.text.trim().toLowerCase();
+    // Cek apakah input berupa angka (kemungkinan barcode) atau teks (nama produk)
+    final bool isNumeric = double.tryParse(query) != null;
 
-      // Untuk testing: tampilkan dummy product untuk berbagai query
-      if (query.contains('le minerale') ||
-          query.contains('minerale') ||
-          query.contains('8124354388') ||
-          query.contains('aqua') ||
-          query.contains('8996001600115') ||
-          query.contains('indomie') ||
-          query.contains('8999999037260') ||
-          query.contains('teh botol') ||
-          query.contains('sosro') ||
-          query.contains('8999999501013') ||
-          query.contains('air mineral') ||
-          query.contains('mie instan')) {
-        await _showDummyProduct();
-      } else {
-        // Coba fetch dari API, jika gagal tampilkan dummy juga
-        await _fetchProductAndNavigate(_searchController.text.trim());
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan saat mencari: $e')),
-      );
-    }
+    await _fetchAndNavigate(query, isBarcode: isNumeric);
   }
 
-  // Untuk scan barcode dari kamera
-  Future<void> _fetchProductFromScan(String barcode) async {
+  // Fungsi utama untuk mengambil data dari server dan navigasi
+  Future<void> _fetchAndNavigate(String query,
+      {required bool isBarcode}) async {
+    String endpoint;
+    // Tentukan endpoint berdasarkan tipe query
+    if (isBarcode) {
+      endpoint = '/product/search/barcode/$query';
+    } else {
+      endpoint = '/product/search/name/$query';
+    }
+
     try {
-      setState(() => _isLoading = true);
+      final url = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+      final String? token = await AuthService
+          .getToken(); // Ambil token untuk otorisasi jika perlu
 
-      final String url = 'http://10.0.2.2:3000/product/scan/$barcode';
-      final String? token = await AuthService.getToken();
-
-      var res = await http.get(
-        Uri.parse(url),
+      final res = await http.get(
+        url,
         headers: {
+          // Beberapa endpoint mungkin tidak butuh token, tapi menyertakannya tidak masalah
           'Authorization': 'Bearer $token',
         },
       );
@@ -160,10 +99,9 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       if (res.statusCode == 200) {
-        Map<String, dynamic> product = json.decode(res.body);
-        setState(() => _isLoading = false);
+        final Map<String, dynamic> product = json.decode(res.body);
 
-        if (!mounted) return;
+        // Navigasi ke halaman detail produk
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -171,51 +109,21 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       } else {
-        setState(() => _isLoading = false);
-        if (!mounted) return;
+        // Jika produk tidak ditemukan oleh server
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Produk tidak ditemukan')),
+          const SnackBar(content: Text('Produk tidak ditemukan di database.')),
         );
       }
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (!mounted) return;
+      // Jika terjadi error koneksi, dll.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Gagal terhubung ke server: $e')),
       );
-    }
-  }
-
-  // Untuk search manual (barcode atau nama)
-  Future<void> _fetchProductAndNavigate(String query) async {
-    try {
-      var url = Uri.parse('http://10.0.2.2:3000/product/$query');
-      var res = await http.get(url);
-
-      if (!mounted) return;
-
-      if (res.statusCode == 200) {
-        Map<String, dynamic> product = json.decode(res.body);
+    } finally {
+      // Pastikan loading indicator selalu berhenti
+      if (mounted) {
         setState(() => _isLoading = false);
-
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
-          ),
-        );
-      } else {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Produk tidak ditemukan di database.')),
-        );
       }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil data produk: $e')),
-      );
     }
   }
 
@@ -252,6 +160,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // UI Anda tetap sama persis, tidak perlu diubah
     return Scaffold(
       appBar: AppBar(
         title: Text('TransMart Scanner'),
@@ -427,8 +336,7 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText:
-                            'Coba: Le Minerale, Aqua, Indomie, atau Teh Botol',
+                        hintText: 'Contoh: Indomie atau 8999999037260',
                         border: InputBorder.none,
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 12),
