@@ -6,6 +6,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const { authenticateToken } = require('./middleware/auth'); // pastikan sudah ada
+
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
 require('dotenv').config();
@@ -105,6 +107,26 @@ app.get('/verify-token', authenticateToken, (req, res) => {
   });
 });
 
+// Ganti password
+app.post('/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findOne({ where: { employee_id: req.user.employee_id } });
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) return res.status(400).json({ message: "Password lama salah" });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await User.update({ password: hashed }, { where: { employee_id: user.employee_id } });
+
+    res.json({ message: "Password berhasil diubah" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
 
 // ===== USER ROUTES (BARU DITAMBAHKAN) =====
 // Ambil semua user (hanya admin)
@@ -163,12 +185,8 @@ app.get('/product/scan/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-<<<<<<< HEAD
-      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
-=======
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
->>>>>>> b59b97b1e09ee5d00d0d5e7b7f54feac6b181fc0
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -187,12 +205,8 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-<<<<<<< HEAD
-      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
-=======
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
->>>>>>> b59b97b1e09ee5d00d0d5e7b7f54feac6b181fc0
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -217,12 +231,8 @@ app.get('/product/search/name/:name', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-<<<<<<< HEAD
-      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
-=======
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
->>>>>>> b59b97b1e09ee5d00d0d5e7b7f54feac6b181fc0
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -250,12 +260,8 @@ app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['ad
 
     res.json({ 
       message: "Gambar produk berhasil diupdate",
-<<<<<<< HEAD
-      imageUrl: `http://10.0.2.2:3000/uploads/${req.file.filename}`
-=======
       // PERBAIKAN: Gunakan BASE_URL dari .env
       imageUrl: `${process.env.BASE_URL}/uploads/${req.file.filename}`
->>>>>>> b59b97b1e09ee5d00d0d5e7b7f54feac6b181fc0
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
