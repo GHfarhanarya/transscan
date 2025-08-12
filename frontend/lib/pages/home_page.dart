@@ -204,7 +204,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('TransMart Scanner'),
-        backgroundColor: Colors.red,
+        backgroundColor: Color(0xFFDA2926),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
@@ -295,7 +295,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Color(0xFFDA2926),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

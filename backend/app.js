@@ -147,7 +147,7 @@ app.get('/product/scan/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -166,7 +166,7 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -191,7 +191,7 @@ app.get('/product/search/name/:name', async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
-      image: product.image ? `http://192.168.137.1:3000/uploads/${product.image}` : null
+      image: product.image ? `http://10.0.2.2:3000/uploads/${product.image}` : null
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -220,7 +220,7 @@ app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['ad
 
     res.json({ 
       message: "Gambar produk berhasil diupdate",
-      imageUrl: `http://192.168.137.1:3000/uploads/${req.file.filename}`
+      imageUrl: `http://10.0.2.2:3000/uploads/${req.file.filename}`
     });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
