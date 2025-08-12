@@ -1,14 +1,15 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://10.0.2.2:3000';
+  static String get baseUrl => ApiConfig.baseUrl;
 
   static Future<bool> isLoggedIn() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      
+
       if (token == null) return false;
 
       // Verify token dengan backend

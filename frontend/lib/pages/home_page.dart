@@ -1,7 +1,11 @@
+// lib/pages/home_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
 import 'login_page.dart';
@@ -21,24 +25,25 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  // Fungsi untuk scan barcode dari kamera
   Future<void> scanBarcode() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
+
     try {
       String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
 
       if (!mounted) return;
-      
+
       if (barcodeScanRes == '-1') {
-        // Jika dibatalkan, hentikan loading
+        // Jika scan dibatalkan oleh pengguna
         setState(() => _isLoading = false);
         return;
-      } else {
-        // Fetch data dari database berdasarkan barcode yang discan
-        await _fetchProductFromScan(barcodeScanRes);
       }
+
+      // Langsung fetch data dari server berdasarkan hasil scan
+      await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -48,8 +53,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Fungsi untuk mencari produk dari input manual
   Future<void> _searchProduct() async {
-    if (_searchController.text.trim().isEmpty) {
+    final query = _searchController.text.trim();
+    if (query.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Masukkan nama produk atau barcode')),
       );
@@ -58,30 +65,33 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted) return;
     setState(() => _isLoading = true);
-    
-    try {
-      // Langsung fetch dari API, tidak ada dummy logic
-      await _fetchProductAndNavigate(_searchController.text.trim());
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan saat mencari: $e')),
-      );
-    }
+
+    // Cek apakah input berupa angka (kemungkinan barcode) atau teks (nama produk)
+    final bool isNumeric = double.tryParse(query) != null;
+
+    await _fetchAndNavigate(query, isBarcode: isNumeric);
   }
 
-  // Untuk scan barcode dari kamera
-  Future<void> _fetchProductFromScan(String barcode) async {
+  // Fungsi utama untuk mengambil data dari server dan navigasi
+  Future<void> _fetchAndNavigate(String query,
+      {required bool isBarcode}) async {
+    String endpoint;
+    // Tentukan endpoint berdasarkan tipe query
+    if (isBarcode) {
+      endpoint = '/product/search/barcode/$query';
+    } else {
+      endpoint = '/product/search/name/$query';
+    }
+
     try {
-      setState(() => _isLoading = true);
-      
-      final String url = 'http://10.0.2.2:3000/product/scan/$barcode';
-      final String? token = await AuthService.getToken();
-      
-      var res = await http.get(
-        Uri.parse(url),
+      final url = Uri.parse('${ApiConfig.baseUrl}$endpoint');
+      final String? token = await AuthService
+          .getToken(); // Ambil token untuk otorisasi jika perlu
+
+      final res = await http.get(
+        url,
         headers: {
+          // Beberapa endpoint mungkin tidak butuh token, tapi menyertakannya tidak masalah
           'Authorization': 'Bearer $token',
         },
       );
@@ -89,10 +99,9 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       if (res.statusCode == 200) {
-        Map<String, dynamic> product = json.decode(res.body);
-        setState(() => _isLoading = false);
-        
-        if (!mounted) return;
+        final Map<String, dynamic> product = json.decode(res.body);
+
+        // Navigasi ke halaman detail produk
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -100,71 +109,21 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       } else {
-        setState(() => _isLoading = false);
-        if (!mounted) return;
+        // Jika produk tidak ditemukan oleh server
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Produk tidak ditemukan')),
+          const SnackBar(content: Text('Produk tidak ditemukan di database.')),
         );
       }
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (!mounted) return;
+      // Jika terjadi error koneksi, dll.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Gagal terhubung ke server: $e')),
       );
-    }
-  }
-
-  // Untuk search manual (barcode atau nama)
-  Future<void> _fetchProductAndNavigate(String query) async {
-    try {
-      setState(() => _isLoading = true);
-      String url;
-      
-      // Deteksi apakah query adalah barcode (hanya angka) atau nama produk
-      bool isBarcode = RegExp(r'^[0-9]+$').hasMatch(query);
-      
-      if (isBarcode) {
-        // Jika input hanya angka, gunakan search barcode
-        url = 'http://10.0.2.2:3000/product/search/barcode/$query';
-      } else {
-        // Jika input mengandung huruf, gunakan search nama
-        url = 'http://10.0.2.2:3000/product/search/name/$query';
-      }
-      
-      final String? token = await AuthService.getToken();
-      
-      var res = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (!mounted) return;
-
-      if (res.statusCode == 200) {
-        Map<String, dynamic> product = json.decode(res.body);
+    } finally {
+      // Pastikan loading indicator selalu berhenti
+      if (mounted) {
         setState(() => _isLoading = false);
-        
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
-          ),
-        );
-      } else {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Produk tidak ditemukan di database.')),
-        );
       }
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengambil data produk: $e')),
-      );
     }
   }
 
@@ -201,6 +160,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // UI Anda tetap sama persis, tidak perlu diubah
     return Scaffold(
       appBar: AppBar(
         title: Text('TransMart Scanner'),
@@ -274,22 +234,22 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(height: 30),
-            
+
             // Scan Button
             Container(
               height: 60,
               child: ElevatedButton.icon(
                 onPressed: _isLoading ? null : scanBarcode,
-                icon: _isLoading 
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : Icon(Icons.qr_code_scanner, size: 28),
+                icon: _isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(Icons.qr_code_scanner, size: 28),
                 label: Text(
                   _isLoading ? 'Memuat...' : 'Scan Barcode',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -305,7 +265,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             SizedBox(height: 30),
-            
+
             // Divider with "Atau" text
             Row(
               children: [
@@ -324,7 +284,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             SizedBox(height: 30),
-            
+
             // Search Section
             Container(
               padding: EdgeInsets.all(20),
@@ -366,7 +326,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  
+
                   // Search Input
                   Container(
                     decoration: BoxDecoration(
@@ -376,35 +336,37 @@ class _HomePageState extends State<HomePage> {
                     child: TextField(
                       controller: _searchController,
                       decoration: InputDecoration(
-                        hintText: 'Masukkan nama produk atau barcode',
+                        hintText: 'Contoh: Indomie atau 8999999037260',
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         hintStyle: TextStyle(color: Colors.grey[500]),
                       ),
                       onSubmitted: (_) => _searchProduct(),
                     ),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Search Button
                   Container(
                     width: double.infinity,
                     height: 45,
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _searchProduct,
-                      icon: _isLoading 
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Icon(Icons.search, size: 20),
+                      icon: _isLoading
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(Icons.search, size: 20),
                       label: Text(
                         _isLoading ? 'Mencari...' : 'Cari Produk',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[100],

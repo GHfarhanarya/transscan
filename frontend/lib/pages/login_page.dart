@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../config/api_config.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -22,7 +23,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    if (_idController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+    if (_idController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Employee ID dan Password wajib diisi'),
@@ -36,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/login'),
+        Uri.parse('${ApiConfig.baseUrl}/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'employee_id': _idController.text.trim(),
@@ -48,11 +50,12 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        
+
         // Simpan token dan user data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', responseData['token']);
-        await prefs.setString('employee_id', responseData['user']['employee_id']);
+        await prefs.setString(
+            'employee_id', responseData['user']['employee_id']);
         await prefs.setString('name', responseData['user']['name']);
         await prefs.setString('role', responseData['user']['role']);
 
@@ -64,7 +67,8 @@ class _LoginPageState extends State<LoginPage> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login berhasil! Selamat datang ${responseData['user']['name']}'),
+            content: Text(
+                'Login berhasil! Selamat datang ${responseData['user']['name']}'),
             backgroundColor: Colors.green,
           ),
         );

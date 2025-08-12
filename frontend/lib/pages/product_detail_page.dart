@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/api_config.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Map<String, dynamic> product;
