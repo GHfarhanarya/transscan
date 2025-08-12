@@ -111,12 +111,25 @@ app.get('/verify-token', authenticateToken, (req, res) => {
 app.post('/change-password', authenticateToken, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
+    
+    // 1. Validasi input dasar
+    if (!oldPassword || !newPassword) {
+        return res.status(400).json({ message: "Password lama dan baru wajib diisi" });
+    }
+
     const user = await User.findOne({ where: { employee_id: req.user.employee_id } });
     if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
 
+    // 2. Verifikasi password lama
     const valid = await bcrypt.compare(oldPassword, user.password);
     if (!valid) return res.status(400).json({ message: "Password lama salah" });
 
+    // 3. (Saran) Validasi panjang password baru
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "Password baru minimal harus 8 karakter" });
+    }
+
+    // 4. Hash dan update password baru
     const hashed = await bcrypt.hash(newPassword, 10);
     await User.update({ password: hashed }, { where: { employee_id: user.employee_id } });
 
@@ -125,7 +138,6 @@ app.post('/change-password', authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 });
-
 
 
 // ===== USER ROUTES =====
