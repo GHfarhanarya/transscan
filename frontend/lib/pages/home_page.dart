@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -160,17 +161,26 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // UI Anda tetap sama persis, tidak perlu diubah
     return Scaffold(
       appBar: AppBar(
         title: Text('TransMart Scanner'),
-        backgroundColor: Colors.red,
+        backgroundColor: Color(0xFFDA2926),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
           PopupMenuButton(
             icon: Icon(Icons.more_vert, color: Colors.white),
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: [
+                    Icon(Icons.settings, color: Colors.blue),
+                    SizedBox(width: 8),
+                    Text('Settings'),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'logout',
                 child: Row(
@@ -183,7 +193,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
             onSelected: (value) {
-              if (value == 'logout') {
+              if (value == 'settings') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              } else if (value == 'logout') {
                 _showLogoutDialog();
               }
             },
@@ -255,7 +270,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: Color(0xFFDA2926),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

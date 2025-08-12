@@ -5,6 +5,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const { authenticateToken } = require('./middleware/auth'); // pastikan sudah ada
+
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
 require('dotenv').config();
@@ -104,6 +106,26 @@ app.get('/verify-token', authenticateToken, (req, res) => {
     }
   });
 });
+
+// Ganti password
+app.post('/change-password', authenticateToken, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findOne({ where: { employee_id: req.user.employee_id } });
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) return res.status(400).json({ message: "Password lama salah" });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await User.update({ password: hashed }, { where: { employee_id: user.employee_id } });
+
+    res.json({ message: "Password berhasil diubah" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 
 
 // ===== USER ROUTES =====
