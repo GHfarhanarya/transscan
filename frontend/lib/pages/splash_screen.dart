@@ -102,8 +102,8 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final scanAnimation = Tween<Offset>(
-      begin: Offset(-1.5, 0),
-      end: Offset(1.5, 0),
+      begin: Offset(-35.5, 0),
+      end: Offset(35.5, 0),
     ).animate(CurvedAnimation(
       parent: _scanController,
       curve: Curves.easeInOut,
@@ -152,8 +152,8 @@ class _SplashScreenState extends State<SplashScreen>
                     : AlwaysStoppedAnimation(Offset.zero),
                 child: SvgPicture.asset(
                   'assets/splash/1.svg',
-                  height: size1,
-                  width: size1,
+                  height: size3,
+                  width: size3,
                 ),
               ),
 
