@@ -53,7 +53,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 TextField(
                   controller: confirmPassController,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: "Konfirmasi Password"),
+                  decoration:
+                      const InputDecoration(labelText: "Konfirmasi Password"),
                 ),
               ],
             ),
@@ -95,7 +96,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Gagal mengubah password: ${response.body}")),
+                    SnackBar(
+                        content:
+                            Text("Gagal mengubah password: ${response.body}")),
                   );
                 }
               },
@@ -134,7 +137,8 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildMenuButton(BuildContext context, {required String label, required VoidCallback onTap}) {
+  Widget _buildMenuButton(BuildContext context,
+      {required String label, required VoidCallback onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       child: ElevatedButton(
