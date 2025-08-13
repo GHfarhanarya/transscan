@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -51,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
 
-        // Simpan token dan user data
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', responseData['token']);
         await prefs.setString(
@@ -59,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('name', responseData['user']['name']);
         await prefs.setString('role', responseData['user']['role']);
 
-        // Navigate ke home page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -99,33 +98,55 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: null,
-      body: SingleChildScrollView(
+      body: Stack(
+  children: [
+    /// ===== Background Vektor di bawah =====
+    Align(
+      alignment: Alignment.bottomCenter,
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.4,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SvgPicture.asset(
+              'assets/vektor1.svg',
+              fit: BoxFit.fill,
+            ),
+            SvgPicture.asset(
+              'assets/vektor2.svg',
+              fit: BoxFit.fill,
+            ),
+          ],
+        ),
+      ),
+    ),
+
+    /// ===== Logo TM di depan vektor =====
+    Positioned(
+      bottom: 40, // jarak dari bawah
+      left: 0,
+      right: 0,
+      child: Center(
+        child: SvgPicture.asset(
+          'assets/tm 1.svg',
+          width: 120, // atur sesuai kebutuhan
+        ),
+      ),
+    ),
+
+    /// ===== Konten di atas =====
+    SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           children: [
-            SizedBox(height: 40),
-            // Logo Section
-            Container(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/TransRetail.png',
-                    height: 20,
-                  ),
-                  SizedBox(height: 8),
-                  Image.asset(
-                    'assets/Transmart.png',
-                    height: 35,
-                  ),
-                ],
-              ),
+            const SizedBox(height: 40),
+            Image.asset(
+              'assets/TransRetail.png',
+              height: 20,
             ),
-            SizedBox(height: 60),
-
-            // Login Form
+            const SizedBox(height: 60),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -137,79 +158,53 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SizedBox(height: 30),
-
-            // ID Field
-            Card(
-              elevation: 4,
-              shadowColor: Colors.black12,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: TextField(
-                  controller: _idController,
-                  decoration: InputDecoration(
-                    hintText: 'Employee ID (contoh: EMP004)',
-                    border: InputBorder.none,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                    ),
+            const SizedBox(height: 30),
+            _buildTextField(
+              controller: _idController,
+              hint: 'Employee ID (contoh: EMP004)',
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              controller: _passwordController,
+              hint: 'Password (format: DDMMYYYY)',
+              obscure: true,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE31837),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
+                  elevation: 4,
                 ),
+                child: _isLoading
+                    ? CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      )
+                    : Text(
+                        'Masuk',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
-            SizedBox(height: 16),
-
-            // Password Field
-            Card(
-              elevation: 4,
-              shadowColor: Colors.black12,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: 'Password (format: DDMMYYYY)',
-                    border: InputBorder.none,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 24),
-
-            SizedBox(height: 40),
-
-            // Register Link
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('Belum punya akun? '),
                 GestureDetector(
                   onTap: () {
-                    // Navigate to register page
+                    // navigasi ke halaman register
                   },
                   child: Text(
                     'Daftar',
@@ -221,44 +216,45 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ],
             ),
-            SizedBox(height: 30),
-
-            // Login Button
-            Container(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFE31837),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Text(
-                        'Masuk',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-              ),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.15,
             ),
-            SizedBox(height: 20), // Extra space at bottom
           ],
+        ),
+      ),
+    ),
+  ],
+),
+
+    );
+  }
+
+  /// Widget untuk field
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    bool obscure = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        decoration: InputDecoration(
+          hintText: hint,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
     );
