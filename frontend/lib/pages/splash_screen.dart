@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
@@ -10,160 +11,162 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation1;
-  late Animation<double> _fadeAnimation2;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _slideAnimation;
+    with TickerProviderStateMixin {
+  late AnimationController _blinkController;
+  late AnimationController _scanController;
+  late AnimationController _moveLogoController;
+
+  bool show1 = true;
+  bool show2 = false;
+  bool show3 = false;
+  bool show4 = false;
+
+  // ukuran masing-masing SVG
+  final double size1 = 100;
+  final double size2 = 70;
+  final double size3 = 30;
+  final double size4 = 70;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 2500),
+
+    _blinkController = AnimationController(
       vsync: this,
+      duration: Duration(milliseconds: 300),
     );
 
-    _fadeAnimation1 = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeIn)),
-        weight: 40.0,
-      ),
-      TweenSequenceItem(
-        tween: ConstantTween<double>(1.0),
-        weight: 60.0,
-      ),
-    ]).animate(_controller);
-
-    _fadeAnimation2 = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.3, 0.8, curve: Curves.easeIn),
-      ),
+    _scanController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 800),
     );
 
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.4, end: 1.2)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
-        weight: 40.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 60.0,
-      ),
-    ]).animate(_controller);
-
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Interval(0.2, 0.7, curve: Curves.easeOutBack),
-      ),
+    _moveLogoController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 700),
     );
 
-    _controller.forward();
+    _startSequence();
+  }
+
+  Future<void> _startSequence() async {
+    // Munculkan 2.svg dengan kedip 2x
+    await Future.delayed(Duration(milliseconds: 800));
+    setState(() => show2 = true);
+    for (int i = 0; i < 2; i++) {
+      await _blinkController.forward();
+      await _blinkController.reverse();
+    }
+
+    // Setelah kedip, tetap tampilkan 2.svg dan munculkan 3.svg scanning
+    setState(() => show3 = true);
+    _scanController.forward();
+    await Future.delayed(Duration(milliseconds: 800));
+
+    // Hilangkan 3.svg, munculkan 4.svg + geser 1.svg
+    setState(() {
+      show3 = false;
+      show4 = true;
+    });
+    _moveLogoController.forward();
+
+    await Future.delayed(Duration(milliseconds: 1000));
     _navigateToLogin();
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   _navigateToLogin() async {
-    await Future.delayed(Duration(seconds: 3), () {});
-    
-    if (mounted) {
-      // Cek apakah user sudah login
-      bool isLoggedIn = await AuthService.isLoggedIn();
-      
-      if (isLoggedIn) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
-      }
+    bool isLoggedIn = await AuthService.isLoggedIn();
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
     }
   }
 
   @override
+  void dispose() {
+    _blinkController.dispose();
+    _scanController.dispose();
+    _moveLogoController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final scanAnimation = Tween<Offset>(
+      begin: Offset(-1.5, 0),
+      end: Offset(1.5, 0),
+    ).animate(CurvedAnimation(
+      parent: _scanController,
+      curve: Curves.easeInOut,
+    ));
+
+    final moveLogoAnimation = Tween<Offset>(
+      begin: Offset(0, 0),
+      end: Offset(0.3, 0), // geser dikit pas ke 4.svg
+    ).animate(CurvedAnimation(
+      parent: _moveLogoController,
+      curve: Curves.easeInOut,
+    ));
+
     return Scaffold(
       backgroundColor: Color(0xFFE31837),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            // Logo A dengan animasi
-            FadeTransition(
-              opacity: _fadeAnimation1,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 30,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/A.svg',
-                    height: 90,
-                    width: 90,
-                  ),
+            // 2.svg selalu di tengah setelah muncul
+            if (show2)
+              FadeTransition(
+                opacity: _blinkController.isAnimating
+                    ? _blinkController
+                    : AlwaysStoppedAnimation(1),
+                child: SvgPicture.asset(
+                  'assets/splash/2.svg',
+                  height: size2,
+                  width: size2,
                 ),
               ),
-            ),
-            SizedBox(height: 24),
-            // Logo Vector dengan animasi slide up
-            SlideTransition(
-              position: _slideAnimation,
-              child: FadeTransition(
-                opacity: _fadeAnimation1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 30,
-                        offset: Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: SvgPicture.asset(
-                    'assets/Vector.svg',
-                    height: 120,
-                  ),
+
+            // 4.svg di atas 2.svg (center)
+            if (show4)
+              SvgPicture.asset(
+                'assets/splash/4.svg',
+                height: size3,
+                width: size3,
+              ),
+
+            // 1.svg (bergser saat 4.svg muncul) → di atas 2.svg
+            if (show1)
+              SlideTransition(
+                position: show4
+                    ? moveLogoAnimation
+                    : AlwaysStoppedAnimation(Offset.zero),
+                child: SvgPicture.asset(
+                  'assets/splash/1.svg',
+                  height: size1,
+                  width: size1,
                 ),
               ),
-            ),
-            SizedBox(height: 48),
-            // Loading indicator dengan animasi fade
-            FadeTransition(
-              opacity: _fadeAnimation2,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 3,
+
+            // 3.svg scanning di atas 2.svg
+            if (show3)
+              SlideTransition(
+                position: scanAnimation,
+                child: SvgPicture.asset(
+                  'assets/splash/3.svg',
+                  height: size1,
+                  width: size1,
+                ),
               ),
-            ),
           ],
         ),
       ),
