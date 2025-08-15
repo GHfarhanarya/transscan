@@ -236,7 +236,7 @@ Widget _buildTextField({
   bool obscure = false,
 }) {
   return Container(
-    width: MediaQuery.of(context).size.width * 0.80, // 90% lebar layar
+    width: MediaQuery.of(context).size.width * 0.80, // % lebar layar
     height: MediaQuery.of(context).size.height * 0.07, // 7% tinggi layar
     decoration: BoxDecoration(
       color: Colors.white,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../config/api_config.dart';
 
 class ProductDetailPage extends StatelessWidget {
@@ -17,14 +18,20 @@ class ProductDetailPage extends StatelessWidget {
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'TRANSRETAIL',
-          style: TextStyle(
-            color: Colors.blue[700],
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            letterSpacing: 1.2,
+        title: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade400,
+                blurRadius: 6,
+              )
+            ]
           ),
+          child: Image.asset('assets/TransRetail.png'),
+          height: 26,
         ),
         centerTitle: false,
       ),
@@ -186,14 +193,10 @@ class ProductDetailPage extends StatelessWidget {
                   Column(
                     children: [
                       // TransMart Logo
-                      Text(
-                        'TRANSmart',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                          letterSpacing: 1.0,
-                        ),
+                      SvgPicture.asset(
+                        'assets/tm 1.svg',
+                        width: 180,
+                        color: Color(0xFFD10000),
                       ),
                       SizedBox(height: 20),
 
@@ -246,9 +249,19 @@ class ProductDetailPage extends StatelessWidget {
   }
 
   String _formatPrice(dynamic price) {
-    return price.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
+    // Pastikan angka dalam format dua digit desimal
+    String strPrice = double.parse(price.toString()).toStringAsFixed(2);
+
+    // Pisahkan antara bagian integer dan decimal
+    List<String> parts = strPrice.split('.');
+
+    // Format bagian integer dengan titik pemisah ribuan
+    String integerPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
+
+    // Gabungkan kembali: decimal dipisah dengan koma
+    return '$integerPart,${parts[1]}';
   }
 }

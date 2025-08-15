@@ -162,11 +162,36 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset:
+          true, // pastikan aktif agar layout naik saat keyboard muncul
       appBar: AppBar(
-        title: Text('TransMart Scanner'),
-        backgroundColor: Color(0xFFDA2926),
+        title: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20)
+          ),
+          child: Image.asset(
+            'assets/TransRetail.png',
+            height: 10,
+          ),
+        ),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFFD10000),
+                Color(0xFFFF8585).withOpacity(0.8),
+              ],
+              stops: [
+                0.6,
+                1.0,
+              ]
+            ),
+          ),
+        ),
         actions: [
           PopupMenuButton(
             icon: Icon(Icons.more_vert, color: Colors.white),
@@ -205,198 +230,198 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 20),
-            // Welcome Section
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.red[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.withOpacity(0.2)),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          // 🔹 supaya bisa discroll saat keyboard muncul
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 20),
+              // Welcome Section
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withOpacity(0.2)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.qr_code_scanner, size: 48, color: Colors.red),
+                    SizedBox(height: 12),
+                    Text(
+                      'Selamat Datang di TransMart Scanner',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[800],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Scan barcode produk untuk melihat informasi lengkap',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.red[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+              SizedBox(height: 30),
+
+              // Scan Button
+              SizedBox(
+                height: 60,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : scanBarcode,
+                  icon: _isLoading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(Icons.qr_code_scanner, size: 28),
+                  label: Text(
+                    _isLoading ? 'Memuat...' : 'Scan Barcode',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFDA2926),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+
+              // Divider with "Atau"
+              Row(
                 children: [
-                  Icon(
-                    Icons.qr_code_scanner,
-                    size: 48,
-                    color: Colors.red,
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Selamat Datang di TransMart Scanner',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red[800],
+                  Expanded(child: Divider(color: Colors.grey[400])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Atau',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Scan barcode produk untuk melihat informasi lengkap',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  Expanded(child: Divider(color: Colors.grey[400])),
                 ],
               ),
-            ),
-            SizedBox(height: 30),
+              SizedBox(height: 30),
 
-            // Scan Button
-            Container(
-              height: 60,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : scanBarcode,
-                icon: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Icon(Icons.qr_code_scanner, size: 28),
-                label: Text(
-                  _isLoading ? 'Memuat...' : 'Scan Barcode',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              // Search Section
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFDA2926),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.red, size: 24),
+                        SizedBox(width: 8),
+                        Text(
+                          'Cari Produk',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Masukkan nama produk atau barcode',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+
+                    // Search Input
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Contoh: Indomie atau 8999999037260',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          hintStyle: TextStyle(color: Colors.grey[500]),
+                        ),
+                        onSubmitted: (_) => _searchProduct(),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+
+                    // Search Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _searchProduct,
+                        icon: _isLoading
+                            ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(Icons.search, size: 20),
+                        label: Text(
+                          _isLoading ? 'Mencari...' : 'Cari Produk',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[100],
+                          foregroundColor: Colors.red[700],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            SizedBox(height: 30),
-
-            // Divider with "Atau" text
-            Row(
-              children: [
-                Expanded(child: Divider(color: Colors.grey[400])),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Atau',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(child: Divider(color: Colors.grey[400])),
-              ],
-            ),
-            SizedBox(height: 30),
-
-            // Search Section
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 10,
-                    offset: Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.red, size: 24),
-                      SizedBox(width: 8),
-                      Text(
-                        'Cari Produk',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red[800],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Masukkan nama produk atau barcode',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  SizedBox(height: 12),
-
-                  // Search Input
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Contoh: Indomie atau 8999999037260',
-                        border: InputBorder.none,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        hintStyle: TextStyle(color: Colors.grey[500]),
-                      ),
-                      onSubmitted: (_) => _searchProduct(),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  // Search Button
-                  Container(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _searchProduct,
-                      icon: _isLoading
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(Icons.search, size: 20),
-                      label: Text(
-                        _isLoading ? 'Mencari...' : 'Cari Produk',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[100],
-                        foregroundColor: Colors.red[700],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+              SizedBox(height: 20), // supaya bawah ada jarak
+            ],
+          ),
         ),
       ),
     );
