@@ -21,7 +21,7 @@ function LoginPage() {
     try {
       // kirim data ke endpoint
       const response = await axios.post(
-        'http://35.219.66.90/api/admin/login',
+        'http://35.219.66.90/admin/login',
         { employee_id: employeeId, password }
       );
 
