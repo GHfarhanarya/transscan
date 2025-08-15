@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
   // ukuran masing-masing SVG
   final double size1 = 100;
   final double size2 = 70;
-  final double size3 = 30;
+  final double size3 = 40;
   final double size4 = 70;
 
   @override
@@ -111,7 +111,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     final moveLogoAnimation = Tween<Offset>(
       begin: Offset(0, 0),
-      end: Offset(0.3, 0), // geser dikit pas ke 4.svg
+      end: Offset(0.25, 0), // geser dikit pas ke 4.svg
     ).animate(CurvedAnimation(
       parent: _moveLogoController,
       curve: Curves.easeInOut,
