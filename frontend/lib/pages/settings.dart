@@ -4,6 +4,7 @@ import 'package:frontend/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/custom_navbar.dart';
+import '../pages/personal_info_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -189,7 +190,7 @@ class _SettingsPageState extends State<SettingsPage> {
               1.0,
             ])),
           )),
-  bottomNavigationBar: CustomNavbar(selectedIndex: 2),
+      bottomNavigationBar: CustomNavbar(selectedIndex: 2),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -202,9 +203,25 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
             _buildMenuButton(
               context,
-              label: "Detail akun",
+              label: "Personal info",
               onTap: () {
-                // Nanti bisa diisi navigasi ke detail akun
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const PersonalInfoPage(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                      const begin = Offset(1.0, 0.0);
+                      const end = Offset.zero;
+                      const curve = Curves.ease;
+                      var tween = Tween(begin: begin, end: end)
+                          .chain(CurveTween(curve: curve));
+                      return SlideTransition(
+                          position: animation.drive(tween), child: child);
+                    },
+                  ),
+                );
               },
             ),
             _buildMenuButton(

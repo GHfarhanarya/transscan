@@ -200,6 +200,22 @@ app.post('/change-password', authenticateToken, async (req, res) => {
 
 
 // ===== USER ROUTES (BARU DITAMBAHKAN) =====
+// Endpoint data pribadi user
+app.get('/user/profile', authenticateToken, async (req, res) => {
+  try {
+    // Ambil data user dari database berdasarkan employee_id dari token
+    const user = await User.findOne({
+      where: { employee_id: req.user.employee_id },
+      attributes: ['employee_id', 'name', 'email', 'phone'] // tambahkan field lain sesuai kebutuhan
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 // Ambil semua user (hanya admin)
 app.get('/users', authenticateToken, authorizeRole(['admin']), async (req, res) => {
   try {
