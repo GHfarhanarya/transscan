@@ -206,7 +206,7 @@ app.get('/user/profile', authenticateToken, async (req, res) => {
     // Ambil data user dari database berdasarkan employee_id dari token
     const user = await User.findOne({
       where: { employee_id: req.user.employee_id },
-      attributes: ['employee_id', 'name', 'email', 'phone'] // tambahkan field lain sesuai kebutuhan
+      attributes: ['employee_id', 'name', 'role', 'birth_date']
     });
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
