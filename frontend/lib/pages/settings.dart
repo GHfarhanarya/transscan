@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import '../widgets/custom_navbar.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -188,6 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
               1.0,
             ])),
           )),
+  bottomNavigationBar: CustomNavbar(selectedIndex: 2),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

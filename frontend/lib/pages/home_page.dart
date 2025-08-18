@@ -1,14 +1,13 @@
-// lib/pages/home_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
+import '../widgets/custom_navbar.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -161,10 +160,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset:
-          true, // pastikan aktif agar layout naik saat keyboard muncul
-      appBar: AppBar(
+  return Scaffold(
+    backgroundColor: Colors.white,
+    resizeToAvoidBottomInset:
+      true, // pastikan aktif agar layout naik saat keyboard muncul
+    appBar: AppBar(
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -230,6 +230,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+  bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
         child: SingleChildScrollView(
           // 🔹 supaya bisa discroll saat keyboard muncul
@@ -331,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.2),
                       spreadRadius: 1,
                       blurRadius: 10,
                       offset: Offset(0, 3),
@@ -343,7 +344,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.search, color: Colors.red, size: 24),
+                        Icon(Icons.search, color: Color(0xFFF44336), size: 24),
                         SizedBox(width: 8),
                         Text(
                           'Cari Produk',
