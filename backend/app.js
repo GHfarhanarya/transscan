@@ -5,7 +5,6 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { authenticateToken } = require('./middleware/auth'); // pastikan sudah ada
 
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
