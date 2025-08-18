@@ -6,6 +6,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const { authenticateToken } = require('./middleware/auth'); // pastikan sudah ada
+
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
 require('dotenv').config();
@@ -92,6 +94,61 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+//login endpoint admin
+app.post('/admin/login', async (req, res) => {
+  try{
+    const { employee_id, password } = req.body;
+
+    if (!employee_id || !password){
+      return res.status(400).json({
+        message: 'Employee ID dan password wajib diisi'
+      });
+    }
+
+    const user = await User.findOne({ where: { employee_id: employee_id } });
+    if (!user){
+      return res.status(401).json({
+        message: 'Employee ID atau password salah!'
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid){
+      return res.status(401).json({
+        message: 'Employee ID atau password salah!'
+      });
+    }
+    
+    if (user.role !== 'admin'){
+      return res.status(403).json({
+        message: 'Akses ditolak, Akun anda bukan admin'
+      });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        employee_id: user.employee_id,
+        name: user.name,
+        role: user.role
+      },
+      JWT_SECRET,
+      { expiresIn: '8'}
+    );
+
+    res.json({
+      message: 'Login Berhasil',
+      token: 'Bearer ' + token 
+    });
+  }catch (err){
+    console.error("Error pada login admin:", err);
+    res.status(500).json({
+      message: 'Server Error', error: err.message
+    });
+  }
+});
+
 
 // Verify token endpoint
 app.get('/verify-token', authenticateToken, (req, res) => {
