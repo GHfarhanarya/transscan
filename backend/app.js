@@ -1,12 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const { authenticateToken } = require('./middleware/auth'); // pastikan sudah ada
-
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
 require('dotenv').config();
@@ -41,9 +40,8 @@ const app = express();
 // Gunakan PORT dari .env atau default ke 3000
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
-app.use(express.json()); // <-- PERBAIKAN: Gunakan ini untuk mem-parsing body JSON
+app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads')); // Serve uploaded files
 
 // Buat direktori uploads jika belum ada
@@ -112,35 +110,41 @@ app.post('/change-password', authenticateToken, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     
-    // 1. Validasi input dasar
     if (!oldPassword || !newPassword) {
-        return res.status(400).json({ message: "Password lama dan baru wajib diisi" });
+      return res.status(400).json({ message: "Password lama dan baru harus diisi" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password baru harus minimal 6 karakter" });
     }
 
     const user = await User.findOne({ where: { employee_id: req.user.employee_id } });
-    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
-
-    // 2. Verifikasi password lama
-    const valid = await bcrypt.compare(oldPassword, user.password);
-    if (!valid) return res.status(400).json({ message: "Password lama salah" });
-
-    // 3. (Saran) Validasi panjang password baru
-    if (newPassword.length < 8) {
-      return res.status(400).json({ message: "Password baru minimal harus 8 karakter" });
+    if (!user) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
-    // 4. Hash dan update password baru
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) {
+      return res.status(400).json({ message: "Password lama salah" });
+    }
+
+    if (oldPassword === newPassword) {
+      return res.status(400).json({ message: "Password baru tidak boleh sama dengan password lama" });
+    }
+
     const hashed = await bcrypt.hash(newPassword, 10);
     await User.update({ password: hashed }, { where: { employee_id: user.employee_id } });
 
     res.json({ message: "Password berhasil diubah" });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error('Error changing password:', err);
+    res.status(500).json({ message: "Terjadi kesalahan saat mengubah password. Silakan coba lagi." });
   }
 });
 
 
-// ===== USER ROUTES =====
+
+// ===== USER ROUTES (BARU DITAMBAHKAN) =====
 // Ambil semua user (hanya admin)
 app.get('/users', authenticateToken, authorizeRole(['admin']), async (req, res) => {
   try {
@@ -158,7 +162,7 @@ app.get('/users', authenticateToken, authorizeRole(['admin']), async (req, res) 
 // ===== PRODUCT ROUTES =====
 
 // Ambil semua produk
-app.get('/products', authenticateToken, async (req, res) => {
+app.get('/products', async (req, res) => {
   try {
     const products = await Product.findAll();
     res.json(products);
@@ -186,7 +190,7 @@ app.post('/products', authenticateToken, authorizeRole(['admin']), async (req, r
 });
 
 // Scan barcode dari kamera
-app.get('/product/scan/:barcode', authenticateToken, async (req, res) => {
+app.get('/product/scan/:barcode', async (req, res) => {
   try {
     const barcode = req.params.barcode;
     const product = await Product.findOne({ where: { barcode } });
@@ -197,6 +201,7 @@ app.get('/product/scan/:barcode', authenticateToken, async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
+      // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
@@ -205,7 +210,7 @@ app.get('/product/scan/:barcode', authenticateToken, async (req, res) => {
 });
 
 // Search berdasarkan barcode (manual input)
-app.get('/product/search/barcode/:barcode', authenticateToken, async (req, res) => {
+app.get('/product/search/barcode/:barcode', async (req, res) => {
   try {
     const barcode = req.params.barcode;
     const product = await Product.findOne({ where: { barcode } });
@@ -216,6 +221,7 @@ app.get('/product/search/barcode/:barcode', authenticateToken, async (req, res) 
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
+      // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
@@ -224,7 +230,7 @@ app.get('/product/search/barcode/:barcode', authenticateToken, async (req, res) 
 });
 
 // Search berdasarkan nama produk
-app.get('/product/search/name/:name', authenticateToken, async (req, res) => {
+app.get('/product/search/name/:name', async (req, res) => {
   try {
     const searchName = req.params.name;
     const product = await Product.findOne({ 
@@ -241,6 +247,7 @@ app.get('/product/search/name/:name', authenticateToken, async (req, res) => {
       priceNormal: product.price_normal,
       pricePromo: product.price_promo,
       stock: product.stock,
+      // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
     });
   } catch (err) {
@@ -269,6 +276,7 @@ app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['ad
 
     res.json({ 
       message: "Gambar produk berhasil diupdate",
+      // PERBAIKAN: Gunakan BASE_URL dari .env
       imageUrl: `${process.env.BASE_URL}/uploads/${req.file.filename}`
     });
   } catch (err) {
