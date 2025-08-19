@@ -35,9 +35,11 @@ class ProductDetailPage extends StatelessWidget {
         ),
         centerTitle: false,
       ),
-  bottomNavigationBar: CustomNavbar(selectedIndex: 1),
+      bottomNavigationBar: CustomNavbar(selectedIndex: 1),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.04),
+        padding: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.04,
+            vertical: MediaQuery.of(context).size.height * 0.02),
         child: Column(
           children: [
             // Product Image Section
@@ -88,7 +90,8 @@ class ProductDetailPage extends StatelessWidget {
                   // Detail Product Card
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+                    padding: EdgeInsets.all(
+                        MediaQuery.of(context).size.width * 0.04),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -197,11 +200,11 @@ class ProductDetailPage extends StatelessWidget {
 } // Akhir dari class ProductDetailPage
 
 String _formatPrice(dynamic price) {
-    String strPrice = double.parse(price.toString()).toStringAsFixed(2);
-    List<String> parts = strPrice.split('.');
-    String integerPart = parts[0].replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]}.',
-    );
-    return '$integerPart,${parts[1]}';
-  }
+  String strPrice = double.parse(price.toString()).toStringAsFixed(2);
+  List<String> parts = strPrice.split('.');
+  String integerPart = parts[0].replaceAllMapped(
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (Match m) => '${m[1]}.',
+  );
+  return '$integerPart,${parts[1]}';
+}

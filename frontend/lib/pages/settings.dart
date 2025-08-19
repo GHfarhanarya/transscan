@@ -175,84 +175,109 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-          title: const Text("Profile"),
-          backgroundColor: const Color(0xFFDA2926),
-          foregroundColor: Colors.white,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-              Color(0xFFD10000),
-              Color(0xFFFF8585).withOpacity(0.8)
-            ], stops: [
-              0.6,
-              1.0,
-            ])),
-          )),
+        title: const Text("Profile"),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFD10000), Color(0xFFFF8585)],
+              stops: const [0.6, 1.0],
+            ),
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       bottomNavigationBar: CustomNavbar(selectedIndex: 2),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Text(
-              userName,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            _buildMenuButton(
-              context,
-              label: "Personal info",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) =>
-                        const PersonalInfoPage(),
-                    transitionsBuilder:
-                        (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.ease;
-                      var tween = Tween(begin: begin, end: end)
-                          .chain(CurveTween(curve: curve));
-                      return SlideTransition(
-                          position: animation.drive(tween), child: child);
-                    },
-                  ),
-                );
-              },
-            ),
-            _buildMenuButton(
-              context,
-              label: "Ganti password",
-              onTap: _showChangePasswordDialog,
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _showLogoutDialog,
-                icon: const Icon(Icons.logout),
-                label: const Text("Keluar"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDA2926),
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(
-                    MediaQuery.of(context).size.width * 0.8, // 80% lebar layar
-                    MediaQuery.of(context).size.height *
-                        0.07, // 7% tinggi layar
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFE5E5), Color(0xFFFFF5F5)],
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                Text(
+                  userName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFD10000),
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Text(
+                  "Pegawai Transmart",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Card Menu
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.info_outline, color: Color(0xFFD10000)),
+                          title: const Text("Personal info", style: TextStyle(fontWeight: FontWeight.w600)),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    const PersonalInfoPage(),
+                                transitionsBuilder:
+                                    (context, animation, secondaryAnimation, child) {
+                                  const begin = Offset(1.0, 0.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.ease;
+                                  var tween = Tween(begin: begin, end: end)
+                                      .chain(CurveTween(curve: curve));
+                                  return SlideTransition(
+                                      position: animation.drive(tween), child: child);
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.lock_outline, color: Color(0xFFD10000)),
+                          title: const Text("Ganti password", style: TextStyle(fontWeight: FontWeight.w600)),
+                          onTap: _showChangePasswordDialog,
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: Color(0xFFD10000)),
+                          title: const Text("Keluar", style: TextStyle(fontWeight: FontWeight.w600)),
+                          onTap: _showLogoutDialog,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Image.asset('assets/Transmart.png', height: 30),
+                const SizedBox(height: 20),
+              ],
             ),
-            const Spacer(),
-            Image.asset('assets/Transmart.png', height: 30),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
     );
