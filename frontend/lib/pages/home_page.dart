@@ -6,7 +6,7 @@ import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
+import '../config/api_config.dart';
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
 import 'login_page.dart';
@@ -168,9 +168,7 @@ class _HomePageState extends State<HomePage> {
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20)
-          ),
+              color: Colors.white, borderRadius: BorderRadius.circular(20)),
           child: Image.asset(
             'assets/TransRetail.png',
             height: 10,
@@ -180,16 +178,13 @@ class _HomePageState extends State<HomePage> {
         automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFD10000),
-                Color(0xFFFF8585).withOpacity(0.8),
-              ],
-              stops: [
-                0.6,
-                1.0,
-              ]
-            ),
+            gradient: LinearGradient(colors: [
+              Color(0xFFD10000),
+              Color(0xFFFF8585).withOpacity(0.8),
+            ], stops: [
+              0.6,
+              1.0,
+            ]),
           ),
         ),
         actions: [
