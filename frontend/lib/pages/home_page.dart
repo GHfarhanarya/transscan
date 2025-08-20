@@ -1,14 +1,12 @@
-// lib/pages/home_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../config/api_config.dart';
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
+import '../widgets/custom_navbar.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -162,8 +160,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset:
-          true, // pastikan aktif agar layout naik saat keyboard muncul
+          false, // pastikan aktif agar layout naik saat keyboard muncul
       appBar: AppBar(
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -182,7 +181,7 @@ class _HomePageState extends State<HomePage> {
               Color(0xFFD10000),
               Color(0xFFFF8585).withOpacity(0.8),
             ], stops: [
-              0.6,
+              0.5,
               1.0,
             ]),
           ),
@@ -225,81 +224,93 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
-        child: SingleChildScrollView(
-          // 🔹 supaya bisa discroll saat keyboard muncul
-          padding: const EdgeInsets.all(16.0),
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            top: 24.0,
+            bottom: 16.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 20),
-              // Welcome Section
-              Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.red.withOpacity(0.2)),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.qr_code_scanner, size: 48, color: Colors.red),
-                    SizedBox(height: 12),
-                    Text(
-                      'Selamat Datang di TransMart Scanner',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[800],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Scan barcode produk untuk melihat informasi lengkap',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.red[600],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 30),
-
-              // Scan Button
-              SizedBox(
-                height: 60,
-                child: ElevatedButton.icon(
-                  onPressed: _isLoading ? null : scanBarcode,
-                  icon: _isLoading
-                      ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Icon(Icons.qr_code_scanner, size: 28),
-                  label: Text(
-                    _isLoading ? 'Memuat...' : 'Scan Barcode',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              // Welcome Section - 30% tinggi
+              Flexible(
+                flex: 3,
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withOpacity(0.2)),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFDA2926),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 3,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.qr_code_scanner, size: 40, color: Colors.red),
+                      SizedBox(height: 8),
+                      Text(
+                        'Selamat Datang di TransMart Scanner',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red[800],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Scan barcode produk untuk melihat informasi lengkap',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.red[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 16),
 
-              // Divider with "Atau"
+              // Scan Button - 15% tinggi
+              Flexible(
+                flex: 1,
+                child: SizedBox(
+                  height: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : scanBarcode,
+                    icon: _isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Icon(Icons.qr_code_scanner, size: 24),
+                    label: Text(
+                      _isLoading ? 'Memuat...' : 'Scan Barcode',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFDA2926),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+
+              // Divider - 5% tinggi
               Row(
                 children: [
                   Expanded(child: Divider(color: Colors.grey[400])),
@@ -326,7 +337,7 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.2),
                       spreadRadius: 1,
                       blurRadius: 10,
                       offset: Offset(0, 3),
@@ -338,7 +349,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.search, color: Colors.red, size: 24),
+                        Icon(Icons.search, color: Color(0xFFF44336), size: 24),
                         SizedBox(width: 8),
                         Text(
                           'Cari Produk',
