@@ -118,56 +118,68 @@ class _SplashScreenState extends State<SplashScreen>
     ));
 
     return Scaffold(
-      backgroundColor: Color(0xFFE31837),
-      body: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // 2.svg selalu di tengah setelah muncul
-            if (show2)
-              FadeTransition(
-                opacity: _blinkController.isAnimating
-                    ? _blinkController
-                    : AlwaysStoppedAnimation(1),
-                child: SvgPicture.asset(
-                  'assets/splash/2.svg',
-                  height: size2,
-                  width: size2,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFD90000), // Warna merah utama di atas
+              Color(0xFFFF3333), // Warna merah yang lebih gelap di bawah
+            ],
+            stops: [0.0, 1.0],
+          ),
+        ),
+        child: Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 2.svg selalu di tengah setelah muncul
+              if (show2)
+                FadeTransition(
+                  opacity: _blinkController.isAnimating
+                      ? _blinkController
+                      : AlwaysStoppedAnimation(1),
+                  child: SvgPicture.asset(
+                    'assets/splash/2.svg',
+                    height: size2,
+                    width: size2,
+                  ),
                 ),
-              ),
 
-            // 4.svg di atas 2.svg (center)
-            if (show4)
-              SvgPicture.asset(
-                'assets/splash/4.svg',
-                height: size3,
-                width: size3,
-              ),
-
-            // 1.svg (bergser saat 4.svg muncul) → di atas 2.svg
-            if (show1)
-              SlideTransition(
-                position: show4
-                    ? moveLogoAnimation
-                    : AlwaysStoppedAnimation(Offset.zero),
-                child: SvgPicture.asset(
-                  'assets/splash/1.svg',
+              // 4.svg di atas 2.svg (center)
+              if (show4)
+                SvgPicture.asset(
+                  'assets/splash/4.svg',
                   height: size3,
                   width: size3,
                 ),
-              ),
 
-            // 3.svg scanning di atas 2.svg
-            if (show3)
-              SlideTransition(
-                position: scanAnimation,
-                child: SvgPicture.asset(
-                  'assets/splash/3.svg',
-                  height: size1,
-                  width: size1,
+              // 1.svg (bergser saat 4.svg muncul) → di atas 2.svg
+              if (show1)
+                SlideTransition(
+                  position: show4
+                      ? moveLogoAnimation
+                      : AlwaysStoppedAnimation(Offset.zero),
+                  child: SvgPicture.asset(
+                    'assets/splash/1.svg',
+                    height: size3,
+                    width: size3,
+                  ),
                 ),
-              ),
-          ],
+
+              // 3.svg scanning di atas 2.svg
+              if (show3)
+                SlideTransition(
+                  position: scanAnimation,
+                  child: SvgPicture.asset(
+                    'assets/splash/3.svg',
+                    height: size1,
+                    width: size1,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

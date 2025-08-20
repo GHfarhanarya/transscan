@@ -1,12 +1,119 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../config/api_config.dart';
 import '../widgets/custom_navbar.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Map<String, dynamic> product;
 
   const ProductDetailPage({Key? key, required this.product}) : super(key: key);
+
+//Fungsi Print/cetak
+  Future<void> printTransmartLabel(Map<String, dynamic> product) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat(80 * PdfPageFormat.mm,
+            50 * PdfPageFormat.mm), // ukuran label 8x5 cm
+        build: (pw.Context context) {
+          return pw.Container(
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.black, width: 1),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                // HEADER MERAH (brand Transmart)
+                pw.Container(
+                  color: PdfColors.red,
+                  padding: const pw.EdgeInsets.all(4),
+                  child: pw.Text(
+                    "TRANSMART",
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.white,
+                    ),
+                  ),
+                ),
+
+                pw.SizedBox(height: 4),
+
+                // Nama Produk
+                pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+                  child: pw.Text(
+                    product['name'] ?? "Nama Produk",
+                    maxLines: 2,
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                ),
+
+                pw.Spacer(),
+
+                // Harga Promo
+                pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+                  child: pw.Text(
+                    "Rp ${product['pricePromo']}",
+                    style: pw.TextStyle(
+                      fontSize: 22,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.red,
+                    ),
+                  ),
+                ),
+
+                // Harga Normal Dicoret (kalau ada promo)
+                if (product['priceNormal'] != product['pricePromo'])
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+                    child: pw.Text(
+                      "Rp ${product['priceNormal']}",
+                      style: pw.TextStyle(
+                        fontSize: 12,
+                        decoration: pw.TextDecoration.lineThrough,
+                        color: PdfColors.grey600,
+                      ),
+                    ),
+                  ),
+
+                pw.SizedBox(height: 6),
+
+                // Barcode
+                pw.Padding(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+                  child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text(
+                        "Barcode: ${product['barcode'] ?? '-'}",
+                        style: pw.TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+
+                pw.SizedBox(height: 4),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    // Print atau Preview
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,118 +191,141 @@ class ProductDetailPage extends StatelessWidget {
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             // Product Information Section
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Detail Product Card
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(
-                        MediaQuery.of(context).size.width * 0.04),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.grey.shade300,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Detail Product Card
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(
+                          MediaQuery.of(context).size.width * 0.04),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Product Name
-                        Text(
-                          product['name'] ?? 'Nama Produk',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        // Barcode
-                        Text(
-                          product['barcode'] ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        // Price Section
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              'Rp ${_formatPrice(product['pricePromo'])}',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
-                              ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Product Name
+                          Text(
+                            product['name'] ?? 'Nama Produk',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
-                            SizedBox(width: 10),
-                            if (product['priceNormal'] != product['pricePromo'])
+                          ),
+                          SizedBox(height: 8),
+                          // Barcode
+                          Text(
+                            product['barcode'] ?? '',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          // Price Section
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
                               Text(
-                                'Rp ${_formatPrice(product['priceNormal'])}',
+                                'Rp ${_formatPrice(product['pricePromo'])}',
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[500],
-                                  decoration: TextDecoration.lineThrough,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
                                 ),
                               ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        // Normal Price Label
-                        Text(
-                          'Harga Normal: Rp ${_formatPrice(product['priceNormal'])}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                              SizedBox(width: 10),
+                              if (product['priceNormal'] !=
+                                  product['pricePromo'])
+                                Text(
+                                  'Rp ${_formatPrice(product['priceNormal'])}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[500],
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: 16),
-                        // Stock Information
-                        Row(
-                          children: [
-                            Text(
-                              'Stock: ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
+                          SizedBox(height: 8),
+                          // Normal Price Label
+                          Text(
+                            'Harga Normal: Rp ${_formatPrice(product['priceNormal'])}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
                             ),
-                            Text(
-                              '${product['stock']} pcs',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
+                          ),
+                          SizedBox(height: 16),
+                          // Stock Information
+                          Row(
+                            children: [
+                              Text(
+                                'Stock: ',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getStockColor(product['stock']),
+                                ),
                               ),
-                            ),
-                          ],
+                              Text(
+                                '${product['stock']} pcs',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: _getStockColor(product['stock']),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    // Tombol Cetak/Print
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width * 0.1),
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFD10000),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          minimumSize: Size(double.infinity, 48),
+                          elevation: 2,
                         ),
-                      ],
+                        icon: Icon(Icons.print, size: 24),
+                        label: Text('Cetak/Print',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          printTransmartLabel(product);
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                  // TransMart Logo
-                  Center(
-                    child: SvgPicture.asset(
-                      'assets/tm 1.svg',
-                      width: MediaQuery.of(context).size.width * 0.5,
-                      color: Color(0xFFD10000),
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                ],
+                    // Logo TransMart dihapus sesuai permintaan
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
-    ); // Akhir dari Scaffold
+    );
   } // Akhir dari build
 } // Akhir dari class ProductDetailPage
 
@@ -207,4 +337,14 @@ String _formatPrice(dynamic price) {
     (Match m) => '${m[1]}.',
   );
   return '$integerPart,${parts[1]}';
+}
+
+Color _getStockColor(int stock) {
+  if (stock < 20) {
+    return Colors.red.shade700; // kritis
+  } else if (stock < 50) {
+    return Colors.orange.shade600; // warning
+  } else {
+    return Colors.green.shade700; // aman
+  }
 }

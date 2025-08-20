@@ -128,7 +128,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                       children: [
                                         ListTile(
                                           leading: const Icon(Icons.badge, color: Color(0xFFD10000)),
-                                          title: const Text('ID Pegawai', style: TextStyle(fontWeight: FontWeight.w600)),
+                                          title: const Text('ID Karyawan', style: TextStyle(fontWeight: FontWeight.w600)),
                                           subtitle: Text(userData?['employee_id'] ?? '-'),
                                         ),
                                         const Divider(),

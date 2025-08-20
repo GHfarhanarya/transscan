@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                 Color(0xFFFF8585).withOpacity(0.8),
               ],
               stops: [
-                0.6,
+                0.5,
                 1.0,
               ]
             ),
@@ -233,7 +233,12 @@ class _HomePageState extends State<HomePage> {
   bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.only(
+            left: 16.0,
+            right: 16.0,
+            top: 24.0,
+            bottom: 16.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
