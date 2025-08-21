@@ -8,6 +8,7 @@ import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_navbar.dart';
+import '../utils/page_transition.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -104,8 +105,8 @@ class _HomePageState extends State<HomePage> {
         // Navigasi ke halaman detail produk
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
+          DetailPageRoute(
+            page: ProductDetailPage(product: product),
           ),
         );
       } else {
@@ -145,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                 await AuthService.logout();
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  ExitPageRoute(page: LoginPage()),
                   (route) => false,
                 );
               },
@@ -160,10 +161,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
   return Scaffold(
     backgroundColor: Colors.white,
     resizeToAvoidBottomInset:
-      false, // pastikan aktif agar layout naik saat keyboard muncul
+      true, // pastikan aktif agar layout naik saat keyboard muncul
     appBar: AppBar(
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -221,7 +223,7 @@ class _HomePageState extends State<HomePage> {
               if (value == 'settings') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  MainPageRoute(page: const SettingsPage()),
                 );
               } else if (value == 'logout') {
                 _showLogoutDialog();
@@ -233,11 +235,11 @@ class _HomePageState extends State<HomePage> {
   bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(
+          padding: EdgeInsets.only(
             left: 16.0,
             right: 16.0,
-            top: 24.0,
-            bottom: 16.0,
+            top: isKeyboardVisible ? 12.0 : 24.0,
+            bottom: isKeyboardVisible ? 8.0 : 16.0,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -279,7 +281,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: isKeyboardVisible ? 8 : 16),
 
               // Scan Button - 15% tinggi
               Flexible(
@@ -313,7 +315,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: isKeyboardVisible ? 8 : 16),
 
               // Divider - 5% tinggi
               Row(
@@ -332,11 +334,11 @@ class _HomePageState extends State<HomePage> {
                   Expanded(child: Divider(color: Colors.grey[400])),
                 ],
               ),
-              SizedBox(height: 30),
+              SizedBox(height: isKeyboardVisible ? 16 : 30),
 
               // Search Section
               Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(isKeyboardVisible ? 12 : 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -430,7 +432,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              SizedBox(height: 20), // supaya bawah ada jarak
+              SizedBox(height: isKeyboardVisible ? 8 : 20), // supaya bawah ada jarak
             ],
           ),
         ),
