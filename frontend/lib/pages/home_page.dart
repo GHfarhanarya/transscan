@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../config/api_config.dart'; // <-- IMPORT FILE KONFIGURASI
+import '../config/api_config.dart';
 import 'product_detail_page.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_navbar.dart';
@@ -170,9 +169,7 @@ class _HomePageState extends State<HomePage> {
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20)
-          ),
+              color: Colors.white, borderRadius: BorderRadius.circular(20)),
           child: Image.asset(
             'assets/TransRetail.png',
             height: 10,
@@ -182,16 +179,13 @@ class _HomePageState extends State<HomePage> {
         automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFD10000),
-                Color(0xFFFF8585).withOpacity(0.8),
-              ],
-              stops: [
-                0.5,
-                1.0,
-              ]
-            ),
+            gradient: LinearGradient(colors: [
+              Color(0xFFD10000),
+              Color(0xFFFF8585).withOpacity(0.8),
+            ], stops: [
+              0.5,
+              1.0,
+            ]),
           ),
         ),
         actions: [
@@ -232,7 +226,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-  bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
+      bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
@@ -302,7 +296,8 @@ class _HomePageState extends State<HomePage> {
                         : Icon(Icons.qr_code_scanner, size: 24),
                     label: Text(
                       _isLoading ? 'Memuat...' : 'Scan Barcode',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFFDA2926),
