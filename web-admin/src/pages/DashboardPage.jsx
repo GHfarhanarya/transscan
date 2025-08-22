@@ -60,18 +60,13 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        let defaultPass = '';
-        if (mode === 'add'){
-            defaultPass = '123456'
-        }
-
         // inisialisasi form
         const initialData = {
             employee_id: user?.employee_id || '',
             name: user?.name || '',
             job_title: user?.job_title || '',
             role: user?.role || 'staff',
-            password: defaultPass,
+            password: '',
         };
         setFormData(initialData);
         setError(''); // Reset error setiap kali modal dibuka
@@ -435,7 +430,6 @@ export default function DashboardPage() {
                                 <select id="role" name="role" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
                                     <option value="All">All Roles</option>
                                     <option value="admin">Admin</option>
-                                    <option value="management">Management</option>
                                     <option value="staff">Staff</option>
                                 </select>
                             </div>
@@ -452,8 +446,8 @@ export default function DashboardPage() {
                                                 <tr>
                                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Employee ID</th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                                                 </tr>
                                             </thead>
@@ -474,8 +468,8 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{user.employee_id}</td>
-                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{user.role}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6">
                                                                 <div className="flex items-center gap-x-4">
                                                                     <button onClick={() => handleOpenModal('edit', user)} className="text-red-600 hover:text-red-900"><EditIcon className="w-5 h-5" /></button>
