@@ -11,6 +11,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(100),
     allowNull: false
   },
+  job_title: {
+    type: DataTypes.VARCHAR(100),
+    allowNull: false
+  },
   role: {
     type: DataTypes.ENUM('admin', 'staff'),
     allowNull: false
