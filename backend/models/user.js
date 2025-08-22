@@ -12,7 +12,7 @@ const User = sequelize.define('User', {
     allowNull: false
   },
   job_title: {
-    type: DataTypes.VARCHAR(100),
+    type: DataTypes.STRING(100),
     allowNull: false
   },
   role: {
