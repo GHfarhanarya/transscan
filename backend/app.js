@@ -137,7 +137,13 @@ app.post('/admin/login', async (req, res) => {
 
     res.json({
       message: 'Login Berhasil',
-      token: 'Bearer ' + token 
+      token: 'Bearer ' + token,
+      user: {
+        id: user.id,
+        employee_id: user.employee_id,
+        name: user.name,
+        role: user.role
+      }
     });
   }catch (err){
     console.error("Error pada login admin:", err);
