@@ -5,11 +5,36 @@ import '../utils/page_transition.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final Map<String, dynamic> product;
 
   const ProductDetailPage({Key? key, required this.product}) : super(key: key);
+
+  @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  String? userRole;
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString('role');
+    });
+  }
+
+  bool _canViewStock() {
+    return userRole == 'admin' || userRole == 'management';
+  }
 
   // Fungsi Print/cetak
   Future<void> printTransmartLabel(Map<String, dynamic> product) async {
@@ -48,7 +73,7 @@ class ProductDetailPage extends StatelessWidget {
                 pw.Padding(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                   child: pw.Text(
-                    product['name'] ?? "Nama Produk",
+                    product['item_name'] ?? "Nama Produk",
                     maxLines: 2,
                     style: pw.TextStyle(
                       fontSize: 12,
@@ -63,7 +88,7 @@ class ProductDetailPage extends StatelessWidget {
                 pw.Padding(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                   child: pw.Text(
-                    "Rp ${_formatPrice(product['pricePromo'])}",
+                    "Rp ${_formatPrice(product['harga_promo'])}",
                     style: pw.TextStyle(
                       fontSize: 22,
                       fontWeight: pw.FontWeight.bold,
@@ -73,11 +98,11 @@ class ProductDetailPage extends StatelessWidget {
                 ),
 
                 // Harga Normal Dicoret (kalau ada promo)
-                if (product['priceNormal'] != product['pricePromo'])
+                if (product['normal_price'] != product['harga_promo'])
                   pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                     child: pw.Text(
-                      "Rp ${_formatPrice(product['priceNormal'])}",
+                      "Rp ${_formatPrice(product['normal_price'])}",
                       style: pw.TextStyle(
                         fontSize: 12,
                         decoration: pw.TextDecoration.lineThrough,
@@ -173,11 +198,11 @@ class ProductDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: product['image'] != null
+                  child: widget.product['image'] != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            product['image'],
+                            widget.product['image'],
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: double.infinity,
@@ -216,7 +241,7 @@ class ProductDetailPage extends StatelessWidget {
                         children: [
                           // Product Name
                           Text(
-                            product['name'] ?? 'Nama Produk',
+                            widget.product['item_name'] ?? 'Nama Produk',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -224,9 +249,18 @@ class ProductDetailPage extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: 8),
+                          // Item Code
+                          Text(
+                            'Kode: ${widget.product['item_code'] ?? '-'}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: 4),
                           // Barcode
                           Text(
-                            product['barcode'] ?? '',
+                            widget.product['barcode'] ?? '',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -238,7 +272,7 @@ class ProductDetailPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Rp ${_formatPrice(product['pricePromo'])}',
+                                'Rp ${_formatPrice(widget.product['harga_promo'])}',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -246,10 +280,10 @@ class ProductDetailPage extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(width: 10),
-                              if (product['priceNormal'] !=
-                                  product['pricePromo'])
+                              if (widget.product['normal_price'] !=
+                                  widget.product['harga_promo'])
                                 Text(
-                                  'Rp ${_formatPrice(product['priceNormal'])}',
+                                  'Rp ${_formatPrice(widget.product['normal_price'])}',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.grey[500],
@@ -261,34 +295,35 @@ class ProductDetailPage extends StatelessWidget {
                           SizedBox(height: 8),
                           // Normal Price Label
                           Text(
-                            'Harga Normal: Rp ${_formatPrice(product['priceNormal'])}',
+                            'Harga Normal: Rp ${_formatPrice(widget.product['normal_price'])}',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
                           ),
                           SizedBox(height: 16),
-                          // Stock Information
-                          Row(
-                            children: [
-                              Text(
-                                'Stock: ',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStockColor(product['stock']),
+                          // Stock Information - only for admin and management
+                          if (_canViewStock())
+                            Row(
+                              children: [
+                                Text(
+                                  'Stock: ',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getStockColor(widget.product['stock']),
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '${product['stock']} pcs',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: _getStockColor(product['stock']),
+                                Text(
+                                  '${widget.product['stock']} pcs',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getStockColor(widget.product['stock']),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
+                              ],
+                            )
                         ],
                       ),
                     ),
@@ -315,7 +350,7 @@ class ProductDetailPage extends StatelessWidget {
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         onPressed: () {
-                          printTransmartLabel(product);
+                          printTransmartLabel(widget.product);
                         },
                       ),
                     ),
