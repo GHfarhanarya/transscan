@@ -64,8 +64,8 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
         const initialData = {
             employee_id: user?.employee_id || '',
             name: user?.name || '',
+            job_title: user?.job_title || '',
             role: user?.role || 'staff',
-            birth_date: user?.birth_date ? new Date(user.birth_date).toISOString().split('T')[0] : '',
             password: '',
         };
         setFormData(initialData);
@@ -125,8 +125,8 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                                 <input type="text" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" />
                             </div>
                              <div>
-                                <label htmlFor="birth_date" className="block text-sm font-medium text-gray-700">Birth Date</label>
-                                <input type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" />
+                                <label htmlFor="job_title" className="block text-sm font-medium text-gray-700">Job Title</label>
+                                <input type="text" name="job_title" value={formData.job_title} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" />
                             </div>
                             <div>
                                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
@@ -427,7 +427,7 @@ export default function DashboardPage() {
                                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Employee ID</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Birth Date</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                                                 </tr>
                                             </thead>
@@ -449,7 +449,7 @@ export default function DashboardPage() {
                                                             </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{user.employee_id}</td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{user.role}</td>
-                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.birth_date ? new Date(user.birth_date).toLocaleDateString('id-ID') : ''}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6">
                                                                 <div className="flex items-center gap-x-4">
                                                                     <button onClick={() => handleOpenModal('edit', user)} className="text-red-600 hover:text-red-900"><EditIcon className="w-5 h-5" /></button>
