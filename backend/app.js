@@ -206,7 +206,7 @@ app.get('/user/profile', authenticateToken, async (req, res) => {
     // Ambil data user dari database berdasarkan employee_id dari token
     const user = await User.findOne({
       where: { employee_id: req.user.employee_id },
-      attributes: ['employee_id', 'name', 'role', 'birth_date']
+      attributes: ['employee_id', 'name', 'job_title', 'role']
     });
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
@@ -242,23 +242,7 @@ app.get('/products', async (req, res) => {
   }
 });
 
-// Tambah produk baru (hanya admin)
-app.post('/products', authenticateToken, authorizeRole(['admin']), async (req, res) => {
-  try {
-    const { name, barcode, price_normal, price_promo, stock, promo_end } = req.body;
-    const product = await Product.create({ 
-      name, 
-      barcode, 
-      price_normal, 
-      price_promo: price_promo || null, 
-      stock,
-      promo_end: promo_end || null
-    });
-    res.status(201).json(product);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
+
 
 // Scan barcode dari kamera
 app.get('/product/scan/:barcode', async (req, res) => {
@@ -326,34 +310,6 @@ app.get('/product/search/name/:name', async (req, res) => {
   }
 });
 
-// Update gambar produk (hanya admin)
-app.post('/product/update-image/:barcode', authenticateToken, authorizeRole(['admin']), upload.single('image'), async (req, res) => {
-  try {
-    const barcode = req.params.barcode;
-    const product = await Product.findOne({ where: { barcode } });
-    
-    if (!product) {
-      return res.status(404).json({ message: "Produk tidak ditemukan" });
-    }
-    
-    if (!req.file) {
-      return res.status(400).json({ message: "Tidak ada file yang diupload" });
-    }
-
-    await Product.update(
-      { image: req.file.filename },
-      { where: { barcode } }
-    );
-
-    res.json({ 
-      message: "Gambar produk berhasil diupdate",
-      // PERBAIKAN: Gunakan BASE_URL dari .env
-      imageUrl: `${process.env.BASE_URL}/uploads/${req.file.filename}`
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
 
 // Sinkronisasi database dan jalankan server
 sequelize.sync().then(() => {

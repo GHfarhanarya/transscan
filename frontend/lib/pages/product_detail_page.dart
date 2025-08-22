@@ -11,7 +11,7 @@ class ProductDetailPage extends StatelessWidget {
 
   const ProductDetailPage({Key? key, required this.product}) : super(key: key);
 
-//Fungsi Print/cetak
+  // Fungsi Print/cetak
   Future<void> printTransmartLabel(Map<String, dynamic> product) async {
     final pdf = pw.Document();
 
@@ -63,7 +63,7 @@ class ProductDetailPage extends StatelessWidget {
                 pw.Padding(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                   child: pw.Text(
-                    "Rp ${product['pricePromo']}",
+                    "Rp ${_formatPrice(product['pricePromo'])}",
                     style: pw.TextStyle(
                       fontSize: 22,
                       fontWeight: pw.FontWeight.bold,
@@ -77,7 +77,7 @@ class ProductDetailPage extends StatelessWidget {
                   pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                     child: pw.Text(
-                      "Rp ${product['priceNormal']}",
+                      "Rp ${_formatPrice(product['priceNormal'])}",
                       style: pw.TextStyle(
                         fontSize: 12,
                         decoration: pw.TextDecoration.lineThrough,
@@ -319,7 +319,6 @@ class ProductDetailPage extends StatelessWidget {
                         },
                       ),
                     ),
-                    // Logo TransMart dihapus sesuai permintaan
                     SizedBox(height: MediaQuery.of(context).size.height * 0.03),
                   ],
                 ),
@@ -332,16 +331,22 @@ class ProductDetailPage extends StatelessWidget {
   } // Akhir dari build
 } // Akhir dari class ProductDetailPage
 
+// Format harga Indonesia
 String _formatPrice(dynamic price) {
   String strPrice = double.parse(price.toString()).toStringAsFixed(2);
   List<String> parts = strPrice.split('.');
+
+  // Tambahkan titik setiap 3 digit dari belakang
   String integerPart = parts[0].replaceAllMapped(
-    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
     (Match m) => '${m[1]}.',
   );
+
+  // Ganti titik desimal jadi koma
   return '$integerPart,${parts[1]}';
 }
 
+// Warna stock
 Color _getStockColor(int stock) {
   if (stock < 20) {
     return Colors.red.shade700; // kritis
