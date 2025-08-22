@@ -250,14 +250,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                           SizedBox(height: 8),
                           // Item Code
-                          // Text(
-                          //   'Kode: ${widget.product['item_code'] ?? '-'}',
-                          //   style: TextStyle(
-                          //     fontSize: 14,
-                          //     color: Colors.grey[600],
-                          //   ),
-                          // ),
-
                            if (_canViewStock())
                             Row(
                               children: [
