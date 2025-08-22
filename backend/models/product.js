@@ -18,7 +18,7 @@ const Product = sequelize.define('Product', {
   },
   item_code: {
     type: DataTypes.STRING(50),
-    allowNull: false
+    allowNull: true
   },
   normal_price: {
     type: DataTypes.DECIMAL(10, 2),
@@ -32,12 +32,10 @@ const Product = sequelize.define('Product', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-
   image: {
     type: DataTypes.STRING(500),
     allowNull: true
-  },
-  
+  }
 }, {
   tableName: 'products',
   timestamps: false
