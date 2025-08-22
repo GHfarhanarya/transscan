@@ -131,9 +131,8 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                             <div>
                                 <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
                                 <select name="role" value={formData.role} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm">
-                                    <option>Admin</option>
-                                    <option>Manajemen</option>
-                                    <option>Staff</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="staff">Staff</option>
                                 </select>
                             </div>
                             <div>
@@ -273,9 +272,18 @@ export default function DashboardPage() {
             method = 'PUT';
         }
 
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            handleLogout();
+            return;
+        }
+
         const response = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
             body: JSON.stringify(formData),
         });
 
@@ -289,8 +297,17 @@ export default function DashboardPage() {
     };
 
     const handleDeleteUser = async (employeeId) => {
+        const token = localStorage.getItem('jwtToken');
+        if (!token) {
+            handleLogout();
+            return;
+        }
+
         const response = await fetch(`${API_URL}/users/${employeeId}`, {
             method: 'DELETE',
+            headers: {
+                'Authorization': token
+            }
         });
 
         if (!response.ok) {
@@ -410,7 +427,9 @@ export default function DashboardPage() {
                             </div>
                             <div>
                                 <select id="role" name="role" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
-                                    <option value="All">All Roles</option><option>Admin</option><option>Manajemen</option><option>Staff</option>
+                                    <option value="All">All Roles</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="staff">Staff</option>
                                 </select>
                             </div>
                         </div>

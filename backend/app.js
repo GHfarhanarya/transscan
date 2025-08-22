@@ -229,6 +229,105 @@ app.get('/users', authenticateToken, authorizeRole(['admin']), async (req, res) 
   }
 });
 
+// Tambah user baru (hanya admin)
+app.post('/users', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { employee_id, name, job_title, role, password } = req.body;
+
+    // Validasi input
+    if (!employee_id || !name || !job_title || !role || !password) {
+      return res.status(400).json({ message: 'Semua field wajib diisi' });
+    }
+
+    // Cek apakah employee_id sudah ada
+    const existingUser = await User.findByPk(employee_id);
+    if (existingUser) {
+      return res.status(400).json({ message: 'Employee ID sudah digunakan' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Buat user baru
+    const newUser = await User.create({
+      employee_id,
+      name,
+      job_title,
+      role,
+      password: hashedPassword
+    });
+
+    // Return user tanpa password
+    const { password: _, ...userWithoutPassword } = newUser.toJSON();
+    res.status(201).json({ 
+      message: 'User berhasil ditambahkan', 
+      user: userWithoutPassword 
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Edit user (hanya admin)
+app.put('/users/:employee_id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { employee_id } = req.params;
+    const { name, job_title, role, password } = req.body;
+
+    // Cari user
+    const user = await User.findByPk(employee_id);
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    // Siapkan data untuk update
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (job_title) updateData.job_title = job_title;
+    if (role) updateData.role = role;
+    
+    // Hash password baru jika ada
+    if (password && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    // Update user
+    await User.update(updateData, { where: { employee_id } });
+
+    // Ambil user yang sudah diupdate (tanpa password)
+    const updatedUser = await User.findByPk(employee_id, {
+      attributes: { exclude: ['password'] }
+    });
+
+    res.json({ 
+      message: 'User berhasil diupdate', 
+      user: updatedUser 
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Hapus user (hanya admin)
+app.delete('/users/:employee_id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+  try {
+    const { employee_id } = req.params;
+
+    // Cari user
+    const user = await User.findByPk(employee_id);
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    // Hapus user
+    await User.destroy({ where: { employee_id } });
+
+    res.json({ message: 'User berhasil dihapus' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 
 // ===== PRODUCT ROUTES =====
 
