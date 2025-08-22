@@ -4,7 +4,7 @@ import 'package:frontend/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/custom_navbar.dart';
-import '../pages/personal_info_page.dart';
+
 
 
 class SettingsPage extends StatefulWidget {
