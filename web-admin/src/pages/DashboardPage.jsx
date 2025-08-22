@@ -188,7 +188,7 @@ export default function DashboardPage() {
 
             const response = await fetch(`${API_URL}/users`, {
                 headers: {
-                    // Sertakan token di Authorization header
+                    // Sertakan token di Authorization header dengan format yang benar
                     'Authorization': token
                 }
             });
