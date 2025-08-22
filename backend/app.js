@@ -132,7 +132,7 @@ app.post('/admin/login', async (req, res) => {
         role: user.role
       },
       JWT_SECRET,
-      { expiresIn: '8'}
+      { expiresIn: '8h'}
     );
 
     res.json({
