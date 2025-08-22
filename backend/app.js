@@ -87,7 +87,6 @@ app.post('/login', async (req, res) => {
         name: user.name,
         role: user.role,
 	job_title:user.job_title
-
       }
     });
   } catch (err) {
@@ -336,10 +335,28 @@ app.delete('/users/:employee_id', authenticateToken, authorizeRole(['admin']), a
 // Ambil semua produk
 app.get('/products', async (req, res) => {
   try {
-    const products = await Product.findAll({
-      attributes: ['id', 'barcode', 'item_name', 'item_code', 'normal_price', 'harga_promo', 'stock', 'image']
-    });
+    const products = await Product.findAll();
     res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// Debug endpoint untuk testing
+app.get('/debug/products', async (req, res) => {
+  try {
+    const products = await Product.findAll();
+    res.json({
+      count: products.length,
+      products: products.map(p => ({
+        id: p.id,
+        barcode: p.barcode,
+        item_name: p.item_name,
+        normal_price: p.normal_price,
+        harga_promo: p.harga_promo,
+        stock: p.stock
+      }))
+    });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -354,11 +371,10 @@ app.get('/product/scan/:barcode', async (req, res) => {
     const product = await Product.findOne({ where: { barcode } });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
-      item_name: product.item_name,
-      item_code: product.item_code,
+      name: product.item_name,
       barcode: product.barcode,
-      normal_price: product.normal_price,
-      harga_promo: product.harga_promo,
+      priceNormal: product.normal_price,
+      pricePromo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
@@ -375,11 +391,10 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
     const product = await Product.findOne({ where: { barcode } });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
-      item_name: product.item_name,
-      item_code: product.item_code,
+      name: product.item_name,
       barcode: product.barcode,
-      normal_price: product.normal_price,
-      harga_promo: product.harga_promo,
+      priceNormal: product.normal_price,
+      pricePromo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
@@ -390,7 +405,7 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
 });
 
 // Search berdasarkan nama produk
-app.get('/product/search/name/:item_name', async (req, res) => {
+app.get('/product/search/name/:name', async (req, res) => {
   try {
     const searchName = req.params.name;
     const product = await Product.findOne({ 
@@ -402,11 +417,10 @@ app.get('/product/search/name/:item_name', async (req, res) => {
     });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
+      name: product.item_name,
       barcode: product.barcode,
-      item_name: product.item_name,
-      item_code: product.item_code,
-      normal_price: product.normal_price,
-      harga_promo: product.harga_promo,
+      priceNormal: product.normal_price,
+      pricePromo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
