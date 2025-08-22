@@ -15,10 +15,6 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('admin', 'staff'),
     allowNull: false
   },
-  birth_date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false
-  },
   password: {
     type: DataTypes.STRING(255),
     allowNull: false
