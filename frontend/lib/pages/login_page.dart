@@ -50,15 +50,22 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
+      // 🔹 Tambahkan debug print untuk cek respon dari server
+      print("Login response status: ${response.statusCode}");
+      print("Login response body: ${response.body}");
+
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', responseData['token']);
         await prefs.setString(
-            'employee_id', responseData['user']['employee_id']);
-        await prefs.setString('name', responseData['user']['name']);
-        await prefs.setString('role', responseData['user']['role']);
+            'employee_id', responseData['user']['employee_id'] ?? "-");
+        await prefs.setString(
+            'name', responseData['user']['name'] ?? "Pengguna");
+        await prefs.setString(
+            'job_title', responseData['user']['job_title'] ?? "-");
+        await prefs.setString('role', responseData['user']['role'] ?? "-");
 
         Navigator.pushReplacement(
           context,
@@ -145,7 +152,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 75),
                   SvgPicture.asset(
-                    'assets/applogo.svg', 
+                    'assets/applogo.svg',
                     width: 135,
                     color: Color(0xFFE31837),
                   ),
@@ -230,37 +237,36 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   /// Widget untuk field
-Widget _buildTextField({
-  // required BuildContext context,
-  required TextEditingController controller,
-  required String hint,
-  bool obscure = false,
-}) {
-  return Container(
-    width: MediaQuery.of(context).size.width * 0.80, // % lebar layar
-    height: MediaQuery.of(context).size.height * 0.07, // 7% tinggi layar
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: Colors.grey.shade300),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black12,
-          blurRadius: 6,
-          offset: Offset(0, 3),
-        ),
-      ],
-    ),
-    child: TextField(
-      controller: controller,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+  Widget _buildTextField({
+    // required BuildContext context,
+    required TextEditingController controller,
+    required String hint,
+    bool obscure = false,
+  }) {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.80, // % lebar layar
+      height: MediaQuery.of(context).size.height * 0.07, // 7% tinggi layar
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
-    ),
-  );
-}
-
+      child: TextField(
+        controller: controller,
+        obscureText: obscure,
+        decoration: InputDecoration(
+          hintText: hint,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        ),
+      ),
+    );
+  }
 }

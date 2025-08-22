@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../widgets/custom_navbar.dart';
 import '../pages/personal_info_page.dart';
 
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
@@ -14,18 +15,30 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+  String? errorMsg;
   String userName = "Pengguna";
+  String employeeId = "-";
+  String jobTitle = "-";
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       userName = prefs.getString('name') ?? "Pengguna";
+      employeeId = prefs.getString('employee_id') ?? "-";
+      jobTitle = prefs.getString('job_title') ?? "-";
+      userData = {
+        'name': userName,
+        'employee_id': employeeId,
+        'job_title': jobTitle,
+      };
     });
   }
 
@@ -202,7 +215,8 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
             child: Column(
               children: [
                 const SizedBox(height: 30),
@@ -216,7 +230,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "Pegawai Transmart",
+                  jobTitle,
                   style: const TextStyle(
                     fontSize: 16,
                     color: Colors.black54,
@@ -230,42 +244,36 @@ class _SettingsPageState extends State<SettingsPage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 18, horizontal: 12),
                     child: Column(
                       children: [
                         ListTile(
-                          leading: const Icon(Icons.info_outline, color: Color(0xFFD10000)),
-                          title: const Text("Personal info", style: TextStyle(fontWeight: FontWeight.w600)),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) =>
-                                    const PersonalInfoPage(),
-                                transitionsBuilder:
-                                    (context, animation, secondaryAnimation, child) {
-                                  const begin = Offset(1.0, 0.0);
-                                  const end = Offset.zero;
-                                  const curve = Curves.ease;
-                                  var tween = Tween(begin: begin, end: end)
-                                      .chain(CurveTween(curve: curve));
-                                  return SlideTransition(
-                                      position: animation.drive(tween), child: child);
-                                },
-                              ),
-                            );
-                          },
+                          leading: const Icon(Icons.person_outline, color: Color(0xFFD10000)),
+                          title: const Text('ID Karyawan',
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                          subtitle: Text(
+                            employeeId,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
                         ),
                         const Divider(),
                         ListTile(
-                          leading: const Icon(Icons.lock_outline, color: Color(0xFFD10000)),
-                          title: const Text("Ganti password", style: TextStyle(fontWeight: FontWeight.w600)),
+                          leading: const Icon(Icons.lock_outline,
+                              color: Color(0xFFD10000)),
+                          title: const Text("Ganti password",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
                           onTap: _showChangePasswordDialog,
                         ),
                         const Divider(),
                         ListTile(
-                          leading: const Icon(Icons.logout, color: Color(0xFFD10000)),
-                          title: const Text("Keluar", style: TextStyle(fontWeight: FontWeight.w600)),
+                          leading: const Icon(Icons.logout,
+                              color: Color(0xFFD10000)),
+                          title: const Text("Keluar",
+                              style: TextStyle(fontWeight: FontWeight.w600)),
                           onTap: _showLogoutDialog,
                         ),
                       ],
