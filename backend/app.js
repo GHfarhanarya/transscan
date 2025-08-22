@@ -370,10 +370,11 @@ app.get('/product/scan/:barcode', async (req, res) => {
     const product = await Product.findOne({ where: { barcode } });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
-      name: product.item_name,
+      item_name: product.item_name,
+      item_code: product.item_code,
       barcode: product.barcode,
-      priceNormal: product.normal_price,
-      pricePromo: product.harga_promo,
+      normal_price: product.normal_price,
+      harga_promo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
@@ -390,10 +391,11 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
     const product = await Product.findOne({ where: { barcode } });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
-      name: product.item_name,
+      item_name: product.item_name,
+      item_code: product.item_code,
       barcode: product.barcode,
-      priceNormal: product.normal_price,
-      pricePromo: product.harga_promo,
+      normal_price: product.normal_price,
+      harga_promo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
@@ -416,10 +418,11 @@ app.get('/product/search/name/:name', async (req, res) => {
     });
     if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
     res.json({
-      name: product.item_name,
+      item_name: product.item_name,
+      item_code: product.item_code,
       barcode: product.barcode,
-      priceNormal: product.normal_price,
-      pricePromo: product.harga_promo,
+      normal_price: product.normal_price,
+      harga_promo: product.harga_promo,
       stock: product.stock,
       // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null

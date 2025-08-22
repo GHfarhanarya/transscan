@@ -272,7 +272,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'Rp ${_formatPrice(widget.product['harga_promo'])}',
+                                'Rp ${_formatPrice(widget.product['harga_promo'] ?? widget.product['normal_price'])}',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -280,8 +280,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 ),
                               ),
                               SizedBox(width: 10),
-                              if (widget.product['normal_price'] !=
-                                  widget.product['harga_promo'])
+                              if (widget.product['harga_promo'] != null && 
+                                  widget.product['normal_price'] != null &&
+                                  widget.product['normal_price'] != widget.product['harga_promo'])
                                 Text(
                                   'Rp ${_formatPrice(widget.product['normal_price'])}',
                                   style: TextStyle(
@@ -295,7 +296,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           SizedBox(height: 8),
                           // Normal Price Label
                           Text(
-                            'Harga Normal: Rp ${_formatPrice(widget.product['normal_price'])}',
+                            'Harga Normal: Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -368,17 +369,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 // Format harga Indonesia
 String _formatPrice(dynamic price) {
-  String strPrice = double.parse(price.toString()).toStringAsFixed(2);
-  List<String> parts = strPrice.split('.');
+  if (price == null) return '0,00';
+  
+  try {
+    String strPrice = double.parse(price.toString()).toStringAsFixed(2);
+    List<String> parts = strPrice.split('.');
 
-  // Tambahkan titik setiap 3 digit dari belakang
-  String integerPart = parts[0].replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (Match m) => '${m[1]}.',
-  );
+    // Tambahkan titik setiap 3 digit dari belakang
+    String integerPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
 
-  // Ganti titik desimal jadi koma
-  return '$integerPart,${parts[1]}';
+    // Ganti titik desimal jadi koma
+    return '$integerPart,${parts[1]}';
+  } catch (e) {
+    print('Error formatting price: $price');
+    return '0,00';
+  }
 }
 
 // Warna stock
