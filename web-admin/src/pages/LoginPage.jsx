@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import ScanLogo from '../assets/logo-app.svg?react';  
+import ScanLogo from '../assets/logo-app.svg?react';
 
 function LoginPage() {
   const [employeeId, setEmployeeId] = useState('');
@@ -82,7 +82,7 @@ function LoginPage() {
   );
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen w-full flex flex-col justify-center items-center font-sans p-4">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen w-screen flex flex-col justify-center items-center font-sans p-4">
       
       {/* Logo */}
       <div className="flex justify-center mb-6 sm:mb-8">
