@@ -4,7 +4,7 @@ import 'package:frontend/pages/settings.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
-import 'product_detail_page.dart';
+import 'product_detail_page.dart' as pdp;
 import '../services/auth_service.dart';
 import '../widgets/custom_navbar.dart';
 import '../utils/page_transition.dart';
@@ -105,7 +105,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           DetailPageRoute(
-            page: ProductDetailPage(product: product),
+            page: pdp.ProductDetailPage(product: product),
           ),
         );
       } else {
