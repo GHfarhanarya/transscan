@@ -25,9 +25,12 @@ function LoginPage() {
         { employee_id: employeeId, password }
       );
 
-      // Jika berhasil, simpan token dan navigasi
-      const { token } = response.data;
-       localStorage.setItem('jwtToken', token);
+      // Jika berhasil, simpan token dan data user ke localStorage
+      const { token, user } = response.data;
+      localStorage.setItem('jwtToken', token);
+      if (user) {
+        localStorage.setItem('userData', JSON.stringify(user));
+      }
 
       // logika rememberme
       if (rememberMe) {

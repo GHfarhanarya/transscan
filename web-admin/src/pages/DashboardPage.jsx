@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ScanLogo from '../assets/logo-app.svg?react';
 
-// --- Icon Components (Tidak ada perubahan) ---
+// --- Icon Components ---
 const MenuIcon = (props) => (
   <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" />
@@ -51,13 +51,15 @@ const SpinnerIcon = (props) => (
 
 // --- Konfigurasi API ---
 const API_URL = 'http://35.219.66.90'; 
-const ITEMS_PER_PAGE = 5;
+const PAGE_SIZE_OPTIONS = [5, 25, 50];
 
 // --- Komponen Modal Pengguna
 const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
     const [formData, setFormData] = useState({});
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [resetNotif, setResetNotif] = useState(false);
 
     useEffect(() => {
         // inisialisasi form
@@ -138,8 +140,46 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                             </div>
                             <div>
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                                <input type="password" name="password" value={formData.password} onChange={handleChange} required={mode === 'add'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" />
-                                {mode === 'edit' && <p className="mt-1 text-xs text-gray-500">Biarkan kosong untuk mempertahankan password saat ini.</p>}
+                                {mode === 'add' ? (
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            tabIndex={-1}
+                                            onClick={() => setShowPassword(v => !v)}
+                                            className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 focus:outline-none"
+                                        >
+                                            {showPassword ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-.19.655-.438 1.283-.74 1.874M15.362 17.362A9.953 9.953 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95M9.88 9.88A3 3 0 0115 12m0 0a3 3 0 01-5.12-2.12" /></svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.293-3.95m1.414-1.414A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.132M15 12a3 3 0 11-6 0 3 3 0 016 0zm-6.364 6.364L6 18m0 0l-2-2m2 2l2-2m-2 2l2-2" /></svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                ) : mode === 'edit' ? (
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <button
+                                            type="button"
+                                            className="px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300 text-sm"
+                                            onClick={() => {
+                                                setFormData(prev => ({ ...prev, password: '123456' }));
+                                                setResetNotif(true);
+                                                setTimeout(() => setResetNotif(false), 2000);
+                                            }}
+                                        >Reset Password</button>
+                                        {resetNotif && (
+                                            <span className="text-green-600 text-xs">Password berhasil direset!</span>
+                                        )}
+                                    </div>
+                                ) : null}
+                                {mode === 'add' && <p className="mt-1 text-xs text-gray-500">Default Password 123456</p>}
                             </div>
                         </div>
                         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-4 rounded-b-lg">
@@ -167,7 +207,24 @@ export default function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterRole, setFilterRole] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(PAGE_SIZE_OPTIONS[0]);
     const profileRef = useRef(null);
+    // Ambil nama admin login dari localStorage
+    const [userName, setUserName] = useState(() => {
+        let name = 'Admin';
+        try {
+            const userData = localStorage.getItem('userData');
+            if (userData) {
+                const parsed = JSON.parse(userData);
+                name = parsed.name || parsed.username || 'Admin';
+            } else {
+                name = localStorage.getItem('userName') || 'Admin';
+            }
+        } catch {
+            name = 'Admin';
+        }
+        return name;
+    });
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -233,7 +290,7 @@ export default function DashboardPage() {
     }, []);
 
     const filteredUsers = useMemo(() => {
-        setCurrentPage(1); 
+        setCurrentPage(1);
         return usersData
             .filter(user => {
                 const term = searchTerm.toLowerCase();
@@ -244,13 +301,17 @@ export default function DashboardPage() {
             .filter(user => filterRole === 'All' || user.role === filterRole);
     }, [searchTerm, filterRole, usersData]);
 
-    const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
     const goToNextPage = () => setCurrentPage((page) => Math.min(page + 1, totalPages));
     const goToPreviousPage = () => setCurrentPage((page) => Math.max(page - 1, 1));
+    const handlePageSizeChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
 
     // --- Handler untuk CRUD ---
     const handleOpenModal = (mode, user = null) => {
@@ -354,13 +415,14 @@ export default function DashboardPage() {
                         </div>
                         <div className="hidden md:block">
                             <div className="ml-4 flex items-center md:ml-6">
-                                <div className="ml-3 relative" ref={profileRef}>
+                                <div className="ml-3 relative flex items-center gap-2" ref={profileRef}>
+                                    <span className="text-gray-800 font-medium text-sm truncate max-w-[120px]">{userName}</span>
                                     <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="max-w-xs bg-gray-800 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
                                         <span className="sr-only">Open user menu</span>
                                         <img className="h-8 w-8 rounded-full" src="https://placehold.co/32x32/7C3AED/FFFFFF?text=A" alt="Admin Avatar" />
                                     </button>
                                     {isProfileOpen && (
-                                        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
+                                        <div className="origin-top absolute left-1/2 top-full mt-2 -translate-x-1/2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
                                             <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
                                             <a href="#" onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
                                         </div>
@@ -426,12 +488,33 @@ export default function DashboardPage() {
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><SearchIcon className="h-5 w-5 text-gray-400" /></div>
                                 <input type="text" placeholder="Search by name or ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="block w-full rounded-md border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 shadow-sm focus:border-red-500 focus:ring-red-500"/>
                             </div>
-                            <div>
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <select id="role" name="role" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
                                     <option value="All">All Roles</option>
                                     <option value="admin">Admin</option>
                                     <option value="staff">Staff</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        {/* Simple Pagination Atas */}
+                        <div className="flex items-center justify-end mt-4 mb-2">
+                            <div className="flex items-center gap-4">
+                                {/* Page size selector */}
+                                <div className="flex items-center gap-1">
+                                    <span className="text-sm text-gray-600">Page size:</span>
+                                    <select value={itemsPerPage} onChange={handlePageSizeChange} className="rounded border-gray-300 py-1 pl-2 pr-6 text-sm focus:border-red-500 focus:ring-red-500">
+                                        {PAGE_SIZE_OPTIONS.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/* Pagination */}
+                                <div className="flex items-center gap-2">
+                                    <button onClick={goToPreviousPage} disabled={currentPage === 1} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&lt;</button>
+                                    <span className="text-sm">Page {totalPages === 0 ? 0 : currentPage} of {totalPages}</span>
+                                    <button onClick={goToNextPage} disabled={currentPage === totalPages || filteredUsers.length === 0} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&gt;</button>
+                                </div>
                             </div>
                         </div>
 
@@ -488,16 +571,15 @@ export default function DashboardPage() {
                             </div>
                         </div>
                         
-                        {/* Pagination Controls */}
-                        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-b-lg shadow ring-1 ring-black ring-opacity-5">
-                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div><p className="text-sm text-gray-700">Showing <span className="font-medium">{isLoading || filteredUsers.length === 0 ? 0 : startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, filteredUsers.length)}</span> of <span className="font-medium">{filteredUsers.length}</span> results</p></div>
-                                <div>
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
-                                        <button onClick={goToPreviousPage} disabled={currentPage === 1} className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 disabled:opacity-50">&lt;</button>
-                                        <button onClick={goToNextPage} disabled={currentPage === totalPages || filteredUsers.length === 0} className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 disabled:opacity-50">&gt;</button>
-                                    </nav>
-                                </div>
+                        {/* Pagination Controls bawah*/}
+                        <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-b-lg shadow ring-1 ring-black ring-opacity-5 gap-2">
+                            <div className="w-full sm:w-auto text-center sm:text-left mb-2 sm:mb-0">
+                                <p className="text-sm text-gray-700">Showing <span className="font-medium">{isLoading || filteredUsers.length === 0 ? 0 : startIndex + 1}</span> to <span className="font-medium">{Math.min(endIndex, filteredUsers.length)}</span> of <span className="font-medium">{filteredUsers.length}</span> results</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={goToPreviousPage} disabled={currentPage === 1} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&lt;</button>
+                                <span className="text-sm">Page {totalPages === 0 ? 0 : currentPage} of {totalPages}</span>
+                                <button onClick={goToNextPage} disabled={currentPage === totalPages || filteredUsers.length === 0} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&gt;</button>
                             </div>
                         </div>
                     </div>
