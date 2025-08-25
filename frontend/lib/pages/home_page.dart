@@ -161,11 +161,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
-  return Scaffold(
-    backgroundColor: Colors.white,
-    resizeToAvoidBottomInset:
-      true, // pastikan aktif agar layout naik saat keyboard muncul
-    appBar: AppBar(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      resizeToAvoidBottomInset:
+          true, // pastikan aktif agar layout naik saat keyboard muncul
+      appBar: AppBar(
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -282,34 +282,58 @@ class _HomePageState extends State<HomePage> {
                 flex: 1,
                 child: SizedBox(
                   height: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _isLoading ? null : scanBarcode,
-                    icon: _isLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Icon(Icons.qr_code_scanner, size: 24),
-                    label: Text(
-                      _isLoading ? 'Memuat...' : 'Scan Barcode',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFDA2926),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFE31837),
+                          Color(0xFFD10000),
+                        ],
                       ),
-                      elevation: 2,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFFE31837).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : scanBarcode,
+                      icon: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(Icons.qr_code_scanner, size: 24),
+                      label: Text(
+                        _isLoading ? 'Memuat...' : 'Scan Barcode',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.transparent, // biar gradient keliatan
+                        shadowColor:
+                            Colors.transparent, // hilangkan shadow default
+                        foregroundColor: Colors.white, // warna icon & teks
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
                     ),
                   ),
                 ),
               ),
+
               SizedBox(height: isKeyboardVisible ? 8 : 16),
 
               // Divider - 5% tinggi
@@ -427,7 +451,8 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              SizedBox(height: isKeyboardVisible ? 8 : 20), // supaya bawah ada jarak
+              SizedBox(
+                  height: isKeyboardVisible ? 8 : 20), // supaya bawah ada jarak
             ],
           ),
         ),
