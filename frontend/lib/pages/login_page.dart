@@ -16,6 +16,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  String _errorMessage = '';
+  bool _viewPassword = false;
+  String? _idError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -71,22 +75,14 @@ class _LoginPageState extends State<LoginPage> {
           context,
           MainPageRoute(page: HomePage()),
         );
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Login berhasil! Selamat datang ${responseData['user']['name']}'),
-            backgroundColor: Colors.green,
-          ),
-        );
       } else {
         final errorData = json.decode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorData['message'] ?? 'Login gagal'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        final message = errorData['message'] ?? 'Login gagal';
+
+        setState(() {
+          _idError = null;
+          _passwordError = message; // Semua pesan error akan ditampilkan di bawah password
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -172,40 +168,78 @@ class _LoginPageState extends State<LoginPage> {
                   _buildTextField(
                     controller: _idController,
                     hint: 'Employee ID (contoh: EMP004)',
+                    icon: Icons.person_outline,
+                    errorText: _idError,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     controller: _passwordController,
+                    obscure: !_viewPassword,
                     hint: 'Password (format: DDMMYYYY)',
-                    obscure: true,
+                    icon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _viewPassword ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _viewPassword = !_viewPassword;
+                        });
+                      },
+                    ),
+                    errorText: _passwordError,
                   ),
+
                   const SizedBox(height: 24),
                   SizedBox(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFFE31837),
+                            Color(0xFFD10000),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFFE31837).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: _isLoading
+                            ? CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
+                            : Text(
+                                'Masuk',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
                     width: 200,
                     height: 55,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _login,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE31837),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 4,
-                      ),
-                      child: _isLoading
-                          ? CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            )
-                          : Text(
-                              'Masuk',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
                   ),
                   const SizedBox(height: 30),
                   Row(
@@ -238,35 +272,55 @@ class _LoginPageState extends State<LoginPage> {
 
   /// Widget untuk field
   Widget _buildTextField({
-    // required BuildContext context,
     required TextEditingController controller,
     required String hint,
     bool obscure = false,
+    IconData? icon,
+    Widget? suffixIcon,
+    String? errorText,
   }) {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.80, // % lebar layar
-      height: MediaQuery.of(context).size.height * 0.07, // 7% tinggi layar
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 3),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: MediaQuery.of(context).size.width * 0.80,
+          height: MediaQuery.of(context).size.height * 0.07,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: errorText != null ? Colors.red : Colors.grey.shade300,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        decoration: InputDecoration(
-          hintText: hint,
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: TextField(
+            controller: controller,
+            obscureText: obscure,
+            decoration: InputDecoration(
+              hintText: hint,
+              border: InputBorder.none,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              prefixIcon: icon != null ? Icon(icon) : null,
+              suffixIcon: suffixIcon,
+            ),
+          ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, top: 4),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
     );
   }
 }

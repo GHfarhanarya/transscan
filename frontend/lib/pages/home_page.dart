@@ -188,43 +188,6 @@ class _HomePageState extends State<HomePage> {
             ]),
           ),
         ),
-        actions: [
-          PopupMenuButton(
-            icon: Icon(Icons.more_vert, color: Colors.white),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text('Settings'),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('Logout'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              if (value == 'settings') {
-                Navigator.push(
-                  context,
-                  MainPageRoute(page: const SettingsPage()),
-                );
-              } else if (value == 'logout') {
-                _showLogoutDialog();
-              }
-            },
-          ),
-        ],
       ),
       bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
