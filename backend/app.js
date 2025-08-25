@@ -63,7 +63,9 @@ app.post('/login', async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: 'Employee ID atau password salah' });
     }
-
+    if (user.status === false) {
+      return res.status(403).json({ message: 'Akun Anda sudah non-aktif. Silakan hubungi admin.' });
+    }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Employee ID atau password salah' });
@@ -110,14 +112,17 @@ app.post('/admin/login', async (req, res) => {
         message: 'Employee ID atau password salah!'
       });
     }
-
+    if (user.status === false || user.status === 0) {
+      return res.status(403).json({
+        message: 'Akun Anda sudah non-aktif. Silakan hubungi admin.'
+      });
+    }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid){
       return res.status(401).json({
         message: 'Employee ID atau password salah!'
       });
     }
-    
     if (user.role !== 'admin'){
       return res.status(403).json({
         message: 'Akses ditolak, Akun anda bukan admin'
@@ -278,7 +283,7 @@ app.post('/users', authenticateToken, authorizeRole(['admin']), async (req, res)
 app.put('/users/:employee_id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
   try {
     const { employee_id } = req.params;
-    const { name, job_title, role, password } = req.body;
+  const { name, job_title, role, password, status } = req.body;
 
     // Cari user
     const user = await User.findByPk(employee_id);
@@ -291,12 +296,11 @@ app.put('/users/:employee_id', authenticateToken, authorizeRole(['admin']), asyn
     if (name) updateData.name = name;
     if (job_title) updateData.job_title = job_title;
     if (role) updateData.role = role;
-    
+    if (typeof status === 'boolean' || status === true || status === false) updateData.status = status;
     // Hash password baru jika ada
     if (password && password.trim() !== '') {
       updateData.password = await bcrypt.hash(password, 10);
     }
-
     // Update user
     await User.update(updateData, { where: { employee_id } });
 
