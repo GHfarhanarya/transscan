@@ -213,7 +213,7 @@ app.get('/user/profile', authenticateToken, async (req, res) => {
     // Ambil data user dari database berdasarkan employee_id dari token
     const user = await User.findOne({
       where: { employee_id: req.user.employee_id },
-      attributes: ['employee_id', 'name', 'job_title', 'role']
+      attributes: ['employee_id', 'name', 'job_title', 'role', 'status']
     });
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
@@ -264,8 +264,8 @@ app.post('/users', authenticateToken, authorizeRole(['admin']), async (req, res)
       password: hashedPassword
     });
 
-    // Return user tanpa password
-    const { password: _, ...userWithoutPassword } = newUser.toJSON();
+    // Return user tanpa password dan timestamps
+    const { password: _, created_at: __, updated_at: ___, ...userWithoutPassword } = newUser.toJSON();
     res.status(201).json({ 
       message: 'User berhasil ditambahkan', 
       user: userWithoutPassword 
