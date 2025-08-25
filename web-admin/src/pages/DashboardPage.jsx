@@ -217,7 +217,15 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
 
 // --- Main Dashboard Component ---
 export default function DashboardPage() {
+    const [filterStatus, setFilterStatus] = useState('All');
+    // Rekap per role
+    const countByRole = (role) => usersData.filter(u => u.role === role).length;
+    const countNonAktifByRole = (role) => usersData.filter(u => u.role === role && u.status === false).length;
     const [usersData, setUsersData] = useState([]);
+    // Hitung total user per role
+    const totalAkun = usersData.length;
+    const totalAkunAktif = usersData.filter(u => u.status === true).length;
+    const totalAkunNonAktif = usersData.filter(u => u.status === false).length;
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -316,8 +324,14 @@ export default function DashboardPage() {
                 const nameMatch = user.name && user.name.toLowerCase().includes(term);
                 return idMatch || nameMatch;
             })
-            .filter(user => filterRole === 'All' || user.role === filterRole);
-    }, [searchTerm, filterRole, usersData]);
+            .filter(user => filterRole === 'All' || user.role === filterRole)
+            .filter(user => {
+                if (filterStatus === 'All') return true;
+                if (filterStatus === 'Aktif') return user.status === true;
+                if (filterStatus === 'Tidak Aktif') return user.status === false;
+                return true;
+            });
+    }, [searchTerm, filterRole, filterStatus, usersData]);
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -491,8 +505,55 @@ export default function DashboardPage() {
                                                 </div>
                                         </header>
 
-                    {/* User Management Section */}
+                    {/* User Summary Card */}
                     <div className="mt-10 px-4 sm:px-0">
+                        <div className="mb-8 flex justify-center">
+                            {/* Card Total Akun dengan info per role */}
+                            <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center border-t-4 border-red-500 w-full max-w-md mx-auto">
+                                <div className="text-2xl font-bold text-gray-800 mb-2">Total Akun: {totalAkun}</div>
+                                <div className="flex flex-col sm:flex-row gap-2 w-full justify-center mb-2">
+                                    <div className="flex-1 text-center">
+                                        <span className="block text-lg font-semibold text-green-600">{totalAkunAktif}</span>
+                                        <span className="text-sm text-gray-500">Akun Aktif</span>
+                                    </div>
+                                    <div className="flex-1 text-center">
+                                        <span className="block text-lg font-semibold text-gray-500">{totalAkunNonAktif}</span>
+                                        <span className="text-sm text-gray-500">Akun Non-Aktif</span>
+                                    </div>
+                                </div>
+                                <div className="w-full mt-2">
+                                    <div className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1"><UsersIcon className="w-5 h-5 text-blue-400" />Akun per Role</div>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full text-xs text-left border rounded">
+                                            <thead>
+                                                <tr className="bg-gray-100 text-gray-700">
+                                                    <th className="py-1 px-2 font-semibold">Role</th>
+                                                    <th className="py-1 px-2 font-semibold text-green-600 text-center">Aktif</th>
+                                                    <th className="py-1 px-2 font-semibold text-red-500 text-center">Non-aktif</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-red-500"></span><span className="font-semibold text-red-600">Admin</span></td>
+                                                    <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('admin') - countNonAktifByRole('admin')}</td>
+                                                    <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('admin')}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-yellow-400"></span><span className="font-semibold text-yellow-600">Management</span></td>
+                                                    <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('management') - countNonAktifByRole('management')}</td>
+                                                    <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('management')}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-green-500"></span><span className="font-semibold text-green-600">Staff</span></td>
+                                                    <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('staff') - countNonAktifByRole('staff')}</td>
+                                                    <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('staff')}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                          <div className="sm:flex sm:items-center sm:justify-between">
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
@@ -506,7 +567,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Table Controls */}
-                        <div className="mt-6 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
+                        <div className="mt-6 grid grid-cols-1 gap-y-4 sm:grid-cols-3 sm:gap-x-4">
                             <div className="relative">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><SearchIcon className="h-5 w-5 text-gray-400" /></div>
                                 <input type="text" placeholder="Search by name or ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="block w-full rounded-md border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 shadow-sm focus:border-red-500 focus:ring-red-500"/>
@@ -517,6 +578,13 @@ export default function DashboardPage() {
                                     <option value="admin">Admin</option>
                                     <option value="management">Management</option>
                                     <option value="staff">Staff</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <select id="status" name="status" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
+                                    <option value="All">Semua Status</option>
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Tidak Aktif">Tidak Aktif</option>
                                 </select>
                             </div>
                         </div>
@@ -553,9 +621,9 @@ export default function DashboardPage() {
                                                 <tr>
                                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Employee ID</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                                                 </tr>
                                             </thead>
@@ -576,6 +644,7 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{user.employee_id}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm">
                                                                 {user.role === 'admin' && (
                                                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Admin</span>
@@ -594,7 +663,6 @@ export default function DashboardPage() {
                                                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Tidak Aktif</span>
                                                                 )}
                                                             </td>
-                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6">
                                                                 <div className="flex items-center gap-x-4">
                                                                     <button onClick={() => handleOpenModal('edit', user)} className="text-red-600 hover:text-red-900"><EditIcon className="w-5 h-5" /></button>
