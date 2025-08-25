@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ScanLogo from '../assets/logo-app.svg?react';
+import RealtimeDateTime from './RealtimeDateTime';
+import CalendarCard from '../components/CalendarCard';
 
 // --- Icon Components ---
 const MenuIcon = (props) => (
@@ -68,7 +70,8 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
             name: user?.name || '',
             job_title: user?.job_title || '',
             role: user?.role || 'staff',
-            password: '',
+            password: '123456',
+            status: typeof user?.status === 'boolean' ? user.status : true,
         };
         setFormData(initialData);
         setError(''); // Reset error setiap kali modal dibuka
@@ -181,6 +184,21 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                                 ) : null}
                                 {mode === 'add' && <p className="mt-1 text-xs text-gray-500">Default Password 123456</p>}
                             </div>
+                            {/* Status aktif/non-aktif hanya pada edit */}
+                            {mode === 'edit' && (
+                                <div>
+                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status Akun</label>
+                                    <select
+                                        name="status"
+                                        value={formData.status ? 'active' : 'inactive'}
+                                        onChange={e => setFormData(prev => ({ ...prev, status: e.target.value === 'active' }))}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
+                                    >
+                                        <option value="active">Aktif</option>
+                                        <option value="inactive">Tidak Aktif</option>
+                                    </select>
+                                </div>
+                            )}
                         </div>
                         <div className="bg-gray-50 px-6 py-4 flex justify-end gap-4 rounded-b-lg">
                             <button type="button" onClick={onClose} className="px-4 py-2 rounded-md text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">Cancel</button>
@@ -378,7 +396,7 @@ export default function DashboardPage() {
         }
 
         handleCloseModal();
-        fetchUsers(); // Muat ulang data setelah berhasil menghapus
+        fetchUsers();
     };
 
     const handleLogout = () => {
@@ -463,10 +481,15 @@ export default function DashboardPage() {
             {/* Main Content */}
             <main>
                 <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-                    <header className="px-4 sm:px-0 mb-8">
-                        <h1 className="text-3xl font-bold leading-tight text-gray-900">Dashboard</h1>
-                        <p className="mt-1 text-md text-gray-600">Welcome back, Admin! Here's your user management panel.</p>
-                    </header>
+                                        <header className="px-4 sm:px-0 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                                <div>
+                                                    <h1 className="text-3xl font-bold leading-tight text-gray-900">Dashboard</h1>
+                                                    <RealtimeDateTime />
+                                                </div>
+                                                <div className="flex-shrink-0">
+                                                    <CalendarCard />
+                                                </div>
+                                        </header>
 
                     {/* User Management Section */}
                     <div className="mt-10 px-4 sm:px-0">
@@ -492,6 +515,7 @@ export default function DashboardPage() {
                                 <select id="role" name="role" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
                                     <option value="All">All Roles</option>
                                     <option value="admin">Admin</option>
+                                    <option value="management">Management</option>
                                     <option value="staff">Staff</option>
                                 </select>
                             </div>
@@ -530,6 +554,7 @@ export default function DashboardPage() {
                                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Employee ID</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                                                 </tr>
@@ -551,7 +576,24 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{user.employee_id}</td>
-                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{user.role}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                                                {user.role === 'admin' && (
+                                                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Admin</span>
+                                                                )}
+                                                                {user.role === 'management' && (
+                                                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-yellow-100 text-yellow-700 border border-yellow-400">Management</span>
+                                                                )}
+                                                                {user.role === 'staff' && (
+                                                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700 border border-green-400">Staff</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                                                                {user.status ? (
+                                                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-700 border border-green-400">Aktif</span>
+                                                                ) : (
+                                                                    <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Tidak Aktif</span>
+                                                                )}
+                                                            </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6">
                                                                 <div className="flex items-center gap-x-4">
