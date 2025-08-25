@@ -113,14 +113,17 @@ app.post('/admin/login', async (req, res) => {
         message: 'Employee ID atau password salah!'
       });
     }
-
+    if (user.status === false || user.status === 0) {
+      return res.status(403).json({
+        message: 'Akun Anda sudah non-aktif. Silakan hubungi admin.'
+      });
+    }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid){
       return res.status(401).json({
         message: 'Employee ID atau password salah!'
       });
     }
-    
     if (user.role !== 'admin'){
       return res.status(403).json({
         message: 'Akses ditolak, Akun anda bukan admin'
