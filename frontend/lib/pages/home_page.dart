@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../config/api_config.dart';
 import 'product_detail_page.dart' as pdp;
 import '../services/auth_service.dart';
+import '../services/hybrid_scanner_service.dart';
 import '../widgets/custom_navbar.dart';
 import '../utils/page_transition.dart';
 import 'login_page.dart';
@@ -25,43 +26,140 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // Fungsi untuk scan barcode dari kamera
+  // Fungsi untuk hybrid scan (barcode + OCR)
   Future<void> scanBarcode() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
-      String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+      // Gunakan hybrid scanner service
+      final result = await HybridScannerService.performHybridScan();
 
       if (!mounted) return;
 
-      if (barcodeScanRes == '-1') {
-        // Jika scan dibatalkan oleh pengguna
-        setState(() => _isLoading = false);
-        return;
-      }
+      if (result != null && result['success']) {
+        // Navigate ke detail page dengan data produk
+        Navigator.push(
+          context,
+          DetailPageRoute(
+            page: pdp.ProductDetailPage(
+              product: {
+                'item_name': result['data']['item_name'],
+                'item_code': result['data']['item_code'] ?? '',
+                'barcode': result['data']['barcode'] ?? '',
+                'normal_price': result['data']['normal_price'],
+                'harga_promo': result['data']['harga_promo'],
+                'stock': result['data']['stock'] ?? 0,
+                'image': result['data']['image'],
+              },
+            ),
+          ),
+        );
 
-      // Langsung fetch data dari server berdasarkan hasil scan
-      await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
+        // Show success message with method used
+        String methodText = result['method'] == 'barcode' 
+            ? 'Barcode berhasil dideteksi' 
+            : 'Teks pada kemasan berhasil dibaca';
+            
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  result['method'] == 'barcode' 
+                      ? Icons.qr_code_scanner 
+                      : Icons.text_fields, 
+                  color: Colors.white, 
+                  size: 20
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        methodText,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      if (result['method'] == 'ocr') 
+                        Text(
+                          'Confidence: ${(result['confidence'] * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: Colors.white.withOpacity(0.8)
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.search_off, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Produk tidak ditemukan',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        'Coba posisikan kamera lebih dekat atau pastikan kemasan terlihat jelas',
+                        style: TextStyle(
+                          fontSize: 12, 
+                          color: Colors.white.withOpacity(0.8)
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.orange[600],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20),
+              Icon(Icons.error_outline, color: Colors.white, size: 20),
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Gagal melakukan scan. Pastikan kamera dapat mengakses kode barcode.',
+                  'Terjadi kesalahan saat scanning. Pastikan izin kamera sudah diberikan.',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
-          backgroundColor: Colors.orange[600],
+          backgroundColor: Colors.red[600],
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -70,6 +168,10 @@ class _HomePageState extends State<HomePage> {
           duration: Duration(seconds: 4),
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -290,7 +392,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Scan barcode produk untuk melihat informasi lengkap',
+                        'Scan barcode atau baca teks kemasan untuk informasi produk',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.red[600],
@@ -336,7 +438,7 @@ class _HomePageState extends State<HomePage> {
                           )
                         : Icon(Icons.qr_code_scanner, size: 24),
                     label: Text(
-                      _isLoading ? 'Memuat...' : 'Scan Barcode',
+                      _isLoading ? 'Memuat...' : 'Smart Scan',
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
