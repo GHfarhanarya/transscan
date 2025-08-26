@@ -147,9 +147,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [
+            Color(0xFFD10000),
+            Color(0xFFFF8585),
+          ], stops: [
+            0.5,
+            1.0
+          ])),
+        ),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFFD10000)),
+          icon: Icon(Icons.arrow_back, color: Color(0xFFFFFFFF)),
           onPressed: () {
             Navigator.of(context).pop();
           },
