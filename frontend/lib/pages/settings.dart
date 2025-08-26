@@ -814,7 +814,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Color(0xFFD10000),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Color(0xFFE31837).withOpacity(0.3),
@@ -911,14 +911,14 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
 
-            SizedBox(height: 32),
+            SizedBox(height: 25),
 
             /// ===== Menu Section =====
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
