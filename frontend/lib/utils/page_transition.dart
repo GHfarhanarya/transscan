@@ -1,9 +1,103 @@
 import 'package:flutter/material.dart';
 
+// Untuk transisi login yang smooth dan profesional
+class SmoothLoginRoute extends PageRouteBuilder {
+  final Widget page;
+
+  SmoothLoginRoute({required this.page})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Kombinasi fade dan slide yang sangat smooth
+            var slideAnimation = Tween<Offset>(
+              begin: const Offset(0.0, 0.1),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutQuart,
+              ),
+            );
+
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Interval(0.0, 0.8, curve: Curves.easeOut),
+              ),
+            );
+
+            var scaleAnimation = Tween<double>(
+              begin: 0.98,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutQuart,
+              ),
+            );
+
+            return SlideTransition(
+              position: slideAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: ScaleTransition(
+                  scale: scaleAnimation,
+                  child: child,
+                ),
+              ),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+        );
+}
+
+// Untuk form validation yang smooth
+class FormValidationRoute extends PageRouteBuilder {
+  final Widget page;
+
+  FormValidationRoute({required this.page})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            var scaleAnimation = Tween<double>(
+              begin: 0.95,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.elasticOut,
+              ),
+            );
+
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            );
+
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+        );
+}
+
 // Untuk halaman detail yang dibuka dari item list (slide dari kanan)
 class DetailPageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   DetailPageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -11,7 +105,8 @@ class DetailPageRoute extends PageRouteBuilder {
             var begin = const Offset(1.0, 0.0);
             var end = Offset.zero;
             var curve = Curves.easeOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
 
             var fadeAnimation = Tween<double>(
@@ -32,14 +127,14 @@ class DetailPageRoute extends PageRouteBuilder {
               ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 300),
+          transitionDuration: const Duration(milliseconds: 350),
         );
 }
 
 // Untuk modal atau dialog (scale dari tengah)
 class ModalPageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   ModalPageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -72,40 +167,67 @@ class ModalPageRoute extends PageRouteBuilder {
               ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 250),
+          transitionDuration: const Duration(milliseconds: 300),
           opaque: false,
           barrierDismissible: true,
           barrierColor: Colors.black54,
         );
 }
 
-// Untuk navigasi antar section utama (slide dari bawah)
+// Untuk navigasi antar section utama (slide dari bawah) - Lebih smooth
 class MainPageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   MainPageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var begin = const Offset(0.0, 1.0);
+            var begin = const Offset(0.0, 0.8);
             var end = Offset.zero;
-            var curve = Curves.easeOutQuint;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var curve = Curves.easeOutQuart;
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
+
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Interval(0.0, 0.7, curve: Curves.easeOut),
+              ),
+            );
+
+            var scaleAnimation = Tween<double>(
+              begin: 0.96,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: curve,
+              ),
+            );
 
             return SlideTransition(
               position: offsetAnimation,
-              child: child,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: ScaleTransition(
+                  scale: scaleAnimation,
+                  child: child,
+                ),
+              ),
             );
           },
-          transitionDuration: const Duration(milliseconds: 400),
+          transitionDuration: const Duration(milliseconds: 500),
         );
 }
 
 // Untuk keluar/logout (fade out dengan scale sedikit)
 class ExitPageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   ExitPageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -145,7 +267,7 @@ class ExitPageRoute extends PageRouteBuilder {
 
 class SlidePageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   SlidePageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -153,7 +275,8 @@ class SlidePageRoute extends PageRouteBuilder {
             var begin = const Offset(1.0, 0.0);
             var end = Offset.zero;
             var curve = Curves.easeInOutCubic;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween =
+                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
 
             // Fade transition
@@ -181,13 +304,13 @@ class SlidePageRoute extends PageRouteBuilder {
 
 class ScalePageRoute extends PageRouteBuilder {
   final Widget page;
-  
+
   ScalePageRoute({required this.page})
       : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             var curve = Curves.easeInOutCubic;
-            
+
             var scaleAnimation = Tween<double>(
               begin: 0.9,
               end: 1.0,

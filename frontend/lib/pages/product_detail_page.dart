@@ -481,39 +481,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 color: Color(0xFFE31837),
                               ),
                             ),
-                            SizedBox(width: 12),
-
-                            /// ===== Original Price (jika ada promo) =====
-                            if ((widget.product['harga_promo']) != null &&
-                                (widget.product['normal_price']) != null &&
-                                (widget.product['normal_price']) !=
-                                    (widget.product['harga_promo']))
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                child: Text(
-                                  'Rp ${_formatPrice(widget.product['normal_price'])}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                    decoration: TextDecoration.lineThrough,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
 
                         SizedBox(height: 12),
 
-                        /// ===== Normal Price Label =====
-                        Text(
-                          'Harga Normal: Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
+                        /// ===== Normal Price Label with strikethrough if there's promo =====
+                        Row(
+                          children: [
+                            Text(
+                              'Harga Normal: ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              'Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                                decoration:
+                                    (widget.product['harga_promo'] != null &&
+                                            widget.product['normal_price'] !=
+                                                null &&
+                                            widget.product['normal_price'] !=
+                                                widget.product['harga_promo'])
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
