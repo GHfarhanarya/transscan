@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../config/api_config.dart';
 import '../utils/page_transition.dart';
+import '../widgets/smooth_widgets.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,7 +17,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  String _errorMessage = '';
   bool _viewPassword = false;
   String? _idError;
   String? _passwordError;
@@ -29,14 +29,30 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    if (_idController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Employee ID dan Password wajib diisi'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    // Reset error messages
+    setState(() {
+      _idError = null;
+      _passwordError = null;
+    });
+
+    // Validate fields
+    bool hasError = false;
+
+    if (_idController.text.trim().isEmpty) {
+      setState(() {
+        _idError = 'Employee ID wajib diisi';
+      });
+      hasError = true;
+    }
+
+    if (_passwordController.text.trim().isEmpty) {
+      setState(() {
+        _passwordError = 'Password wajib diisi';
+      });
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -73,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
 
         Navigator.pushReplacement(
           context,
-          MainPageRoute(page: HomePage()),
+          SmoothLoginRoute(page: HomePage()),
         );
       } else {
         final errorData = json.decode(response.body);
@@ -81,14 +97,32 @@ class _LoginPageState extends State<LoginPage> {
 
         setState(() {
           _idError = null;
-          _passwordError = message; // Semua pesan error akan ditampilkan di bawah password
+          _passwordError =
+              message; // Semua pesan error akan ditampilkan di bawah password
         });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Terjadi kesalahan: $e'),
-          backgroundColor: Colors.red,
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Terjadi kesalahan koneksi. Silakan coba lagi.',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.all(16),
+          duration: Duration(seconds: 4),
         ),
       );
     } finally {
@@ -290,10 +324,13 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: errorText != null ? Colors.red : Colors.grey.shade300,
+              width: errorText != null ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
+                color: errorText != null
+                    ? Colors.red.withOpacity(0.1)
+                    : Colors.black12,
                 blurRadius: 6,
                 offset: Offset(0, 3),
               ),
@@ -302,22 +339,43 @@ class _LoginPageState extends State<LoginPage> {
           child: TextField(
             controller: controller,
             obscureText: obscure,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
             decoration: InputDecoration(
               hintText: hint,
+              hintStyle: TextStyle(
+                color: errorText != null
+                    ? Colors.red.shade400
+                    : Colors.grey.shade500,
+                fontSize: 14,
+              ),
               border: InputBorder.none,
               contentPadding:
                   EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              prefixIcon: icon != null ? Icon(icon) : null,
+              prefixIcon: icon != null
+                  ? Icon(
+                      icon,
+                      color:
+                          errorText != null ? Colors.red : Colors.grey.shade600,
+                      size: 20,
+                    )
+                  : null,
               suffixIcon: suffixIcon,
             ),
           ),
         ),
         if (errorText != null)
           Padding(
-            padding: const EdgeInsets.only(left: 8.0, top: 4),
+            padding: const EdgeInsets.only(left: 12.0, top: 6),
             child: Text(
               errorText,
-              style: TextStyle(color: Colors.red, fontSize: 12),
+              style: TextStyle(
+                color: Colors.red.shade600,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
       ],

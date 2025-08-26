@@ -18,7 +18,7 @@ class ProductDetailPage extends StatefulWidget {
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
   String? userRole;
-  
+
   @override
   void initState() {
     super.initState();
@@ -203,13 +203,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              loadingBuilder: (context, child, loadingProgress) {
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
                                 return Center(
                                   child: CircularProgressIndicator(
                                     color: Color(0xFFE31837),
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
+                                    value: loadingProgress.expectedTotalBytes !=
+                                            null
+                                        ? loadingProgress
+                                                .cumulativeBytesLoaded /
                                             loadingProgress.expectedTotalBytes!
                                         : null,
                                   ),
@@ -229,7 +232,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   ),
                                   child: Center(
                                     child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.image_not_supported,
@@ -331,7 +335,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 children: [
                   /// ===== Product Name =====
                   Text(
-                    widget.product['item_name'] ?? widget.product['name'] ?? 'Nama Produk',
+                    widget.product['item_name'] ??
+                        widget.product['name'] ??
+                        'Nama Produk',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -375,7 +381,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   if (_canViewStock()) ...[
                     SizedBox(height: 12),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.blue[50],
                         borderRadius: BorderRadius.circular(12),
@@ -451,7 +458,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ],
                         ),
                         SizedBox(height: 16),
-                        
+
                         /// ===== Current Price =====
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -464,37 +471,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 color: Color(0xFFE31837),
                               ),
                             ),
-                            SizedBox(width: 12),
-                            
-                            /// ===== Original Price (jika ada promo) =====
-                            if ((widget.product['harga_promo']) != null && 
-                                (widget.product['normal_price']) != null &&
-                                (widget.product['normal_price']) != (widget.product['harga_promo']))
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                child: Text(
-                                  'Rp ${_formatPrice(widget.product['normal_price'])}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                    decoration: TextDecoration.lineThrough,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
-                        
+
                         SizedBox(height: 12),
-                        
-                        /// ===== Normal Price Label =====
-                        Text(
-                          'Harga Normal: Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
+
+                        /// ===== Normal Price Label with strikethrough if there's promo =====
+                        Row(
+                          children: [
+                            Text(
+                              'Harga Normal: ',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              'Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                                decoration:
+                                    (widget.product['harga_promo'] != null &&
+                                            widget.product['normal_price'] !=
+                                                null &&
+                                            widget.product['normal_price'] !=
+                                                widget.product['harga_promo'])
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -506,10 +515,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     Container(
                       padding: EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: _getStockColor(widget.product['stock'] ?? 0).withOpacity(0.1),
+                        color: _getStockColor(widget.product['stock'] ?? 0)
+                            .withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: _getStockColor(widget.product['stock'] ?? 0).withOpacity(0.3),
+                          color: _getStockColor(widget.product['stock'] ?? 0)
+                              .withOpacity(0.3),
                         ),
                       ),
                       child: Row(
@@ -517,12 +528,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           Container(
                             padding: EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: _getStockColor(widget.product['stock'] ?? 0).withOpacity(0.2),
+                              color:
+                                  _getStockColor(widget.product['stock'] ?? 0)
+                                      .withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.inventory_2,
-                              color: _getStockColor(widget.product['stock'] ?? 0),
+                              color:
+                                  _getStockColor(widget.product['stock'] ?? 0),
                               size: 20,
                             ),
                           ),
@@ -543,16 +557,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: _getStockColor(widget.product['stock'] ?? 0),
+                                  color: _getStockColor(
+                                      widget.product['stock'] ?? 0),
                                 ),
                               ),
                             ],
                           ),
                           Spacer(),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: _getStockColor(widget.product['stock'] ?? 0),
+                              color:
+                                  _getStockColor(widget.product['stock'] ?? 0),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -643,7 +660,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 // Format harga Indonesia
 String _formatPrice(dynamic price) {
   if (price == null) return '0,00';
-  
+
   try {
     String strPrice = double.parse(price.toString()).toStringAsFixed(2);
     List<String> parts = strPrice.split('.');
@@ -666,9 +683,9 @@ String _formatPrice(dynamic price) {
 Color _getStockColor(int stock) {
   if (stock < 0) {
     return Colors.red.shade700;
-  }else if (stock == 0) {
+  } else if (stock == 0) {
     return Colors.grey.shade600;
-  }else if (stock < 20) {
+  } else if (stock < 20) {
     return Colors.orange.shade600; // warning
   } else {
     return Colors.green.shade700; // aman
