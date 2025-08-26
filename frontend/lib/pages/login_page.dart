@@ -167,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 30),
                   _buildTextField(
                     controller: _idController,
-                    hint: 'Employee ID (contoh: EMP004)',
+                    hint: 'Employee ID (contoh: EMP006)',
                     icon: Icons.person_outline,
                     errorText: _idError,
                   ),
@@ -175,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                   _buildTextField(
                     controller: _passwordController,
                     obscure: !_viewPassword,
-                    hint: 'Password (format: DDMMYYYY)',
+                    hint: 'Password (default: 123456)',
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(
