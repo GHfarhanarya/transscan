@@ -356,7 +356,7 @@ class SettingsSlideRoute extends PageRouteBuilder {
             var begin = Offset(isFromRight ? 1.0 : -1.0, 0.0);
             var end = Offset.zero;
             var slideCurve = Curves.easeOutQuart;
-            
+
             var slideAnimation = Tween<Offset>(
               begin: begin,
               end: end,

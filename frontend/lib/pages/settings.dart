@@ -807,7 +807,6 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
-
             /// ===== Profile Header Card =====
             Container(
               width: double.infinity,
@@ -970,7 +969,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-            ),            
+            ),
             // SizedBox(height: 20),
           ],
         ),

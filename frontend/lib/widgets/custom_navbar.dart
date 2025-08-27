@@ -11,7 +11,6 @@ import 'dart:convert';
 import '../services/auth_service.dart';
 import '../config/api_config.dart';
 
-
 class CustomNavbar extends StatefulWidget {
   final int selectedIndex;
   const CustomNavbar({Key? key, this.selectedIndex = 0}) : super(key: key);
@@ -27,8 +26,8 @@ class _CustomNavbarState extends State<CustomNavbar> {
     try {
       String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
         '#ff6666', // Warna garis
-        'Batal',   // Tombol cancel
-        true,      // Flash aktif
+        'Batal', // Tombol cancel
+        true, // Flash aktif
         ScanMode.BARCODE,
       );
 
@@ -37,7 +36,8 @@ class _CustomNavbarState extends State<CustomNavbar> {
 
       // Sama seperti home_page: ambil token dan fetch data
       final String? token = await AuthService.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}/product/search/barcode/$barcodeScanRes');
+      final url = Uri.parse(
+          '${ApiConfig.baseUrl}/product/search/barcode/$barcodeScanRes');
       final res = await http.get(
         url,
         headers: {
@@ -134,7 +134,9 @@ class _CustomNavbarState extends State<CustomNavbar> {
           IconButton(
             icon: Icon(
               Icons.home,
-              color: widget.selectedIndex == 0 ? Color(0xFFFFFFFF) : Color(0xFFFF9088),
+              color: widget.selectedIndex == 0
+                  ? Color(0xFFFFFFFF)
+                  : Color(0xFFFF9088),
               size: widget.selectedIndex == 0 ? 36 : 28,
             ),
             onPressed: () {
@@ -168,14 +170,17 @@ class _CustomNavbarState extends State<CustomNavbar> {
           IconButton(
             icon: Icon(
               Icons.person,
-              color: widget.selectedIndex == 2 ? Color(0xFFFFFFFF) : Color(0xFFFF9088),
+              color: widget.selectedIndex == 2
+                  ? Color(0xFFFFFFFF)
+                  : Color(0xFFFF9088),
               size: widget.selectedIndex == 2 ? 36 : 28,
             ),
             onPressed: () {
               if (widget.selectedIndex != 2) {
                 Navigator.push(
                   context,
-                  SettingsSlideRoute(page: const SettingsPage(), isFromRight: true),
+                  SettingsSlideRoute(
+                      page: const SettingsPage(), isFromRight: true),
                 );
               }
             },
