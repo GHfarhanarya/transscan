@@ -21,6 +21,8 @@ class CustomNavbar extends StatefulWidget {
 }
 
 class _CustomNavbarState extends State<CustomNavbar> {
+  bool _isLoading = false;
+
   Future<void> scanBarcode() async {
     try {
       String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
@@ -45,22 +47,70 @@ class _CustomNavbarState extends State<CustomNavbar> {
 
       if (res.statusCode == 200) {
         final Map<String, dynamic> product = json.decode(res.body);
+
+        // Navigasi ke halaman detail produk
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailPage(product: product),
+          DetailPageRoute(
+            page: ProductDetailPage(product: product),
           ),
         );
       } else {
+        // Jika produk tidak ditemukan oleh server
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Produk tidak ditemukan di database.')),
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.search_off, color: Colors.white, size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Produk tidak ditemukan. Silakan coba dengan nama atau kode barcode yang lain.',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.grey[600],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.all(16),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
-      if (!mounted) return;
+      // Jika terjadi error koneksi, dll.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan saat scan: $e')),
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.wifi_off, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Gagal terhubung ke server. Periksa koneksi internet Anda.',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red[600],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: EdgeInsets.all(16),
+          duration: Duration(seconds: 4),
+        ),
       );
+    } finally {
+      // Pastikan loading indicator selalu berhenti
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

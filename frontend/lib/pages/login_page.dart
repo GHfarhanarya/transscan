@@ -209,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                   _buildTextField(
                     controller: _passwordController,
                     obscure: !_viewPassword,
-                    hint: 'Password (format: 123456)',
+                    hint: 'Password (default: 123456)',
                     icon: Icons.lock_outline,
                     suffixIcon: IconButton(
                       icon: Icon(

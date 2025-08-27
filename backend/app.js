@@ -49,7 +49,10 @@ if (!fs.existsSync('uploads')){
     fs.mkdirSync('uploads');
 }
 
-// ===== AUTH ROUTES =====
+// ===== ROUTES =====
+const logActivity = require('./utils/logActivity');
+const activityLogRoutes = require('./routes/activityLog');
+app.use('/activity-logs', activityLogRoutes);
 // Login endpoint
 app.post('/login', async (req, res) => {
   try {
@@ -269,6 +272,12 @@ app.post('/users', authenticateToken, authorizeRole(['admin']), async (req, res)
       password: hashedPassword
     });
 
+    await logActivity({
+      userId: req.user.employee_id,
+      action: 'CREATE_USER',
+      details: `Menambah user baru: ${name} (${employee_id})`
+    });
+
     // Return user tanpa password dan timestamps
     const { password: _, created_at: __, updated_at: ___, ...userWithoutPassword } = newUser.toJSON();
     res.status(201).json({ 
@@ -284,7 +293,7 @@ app.post('/users', authenticateToken, authorizeRole(['admin']), async (req, res)
 app.put('/users/:employee_id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
   try {
     const { employee_id } = req.params;
-  const { name, job_title, role, password, status } = req.body;
+    const { name, job_title, role, password, status } = req.body;
 
     // Cari user
     const user = await User.findByPk(employee_id);
@@ -304,6 +313,12 @@ app.put('/users/:employee_id', authenticateToken, authorizeRole(['admin']), asyn
     }
     // Update user
     await User.update(updateData, { where: { employee_id } });
+
+    await logActivity({
+      userId: req.user.employee_id,
+      action: 'UPDATE_USER',
+      details: `Update user: ${employee_id}${name ? `, nama: ${name}` : ''}`
+    });
 
     // Ambil user yang sudah diupdate (tanpa password)
     const updatedUser = await User.findByPk(employee_id, {
@@ -332,6 +347,12 @@ app.delete('/users/:employee_id', authenticateToken, authorizeRole(['admin']), a
 
     // Hapus user
     await User.destroy({ where: { employee_id } });
+
+    await logActivity({
+      userId: req.user.employee_id,
+      action: 'DELETE_USER',
+      details: `Menghapus user: ${user.name} (${employee_id})`
+    });
 
     res.json({ message: 'User berhasil dihapus' });
   } catch (err) {
