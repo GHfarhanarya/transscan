@@ -8,38 +8,33 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       barcode: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.STRING(50),
+        allowNull: false,
+        unique: true
       },
       item_name: {
-        type: Sequelize.STRING,
+        type: Sequelize.STRING(255),
         allowNull: false
       },
       item_code: {
-        type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.STRING(50),
+        allowNull: true
       },
       normal_price: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: false
       },
       harga_promo: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: true
       },
       stock: {
         type: Sequelize.INTEGER,
         allowNull: false
       },
-      created_at: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
-      },
-      updated_at: {
-        allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.fn('NOW')
+      image: {
+        type: Sequelize.STRING(500),
+        allowNull: true
       }
     });
   },
