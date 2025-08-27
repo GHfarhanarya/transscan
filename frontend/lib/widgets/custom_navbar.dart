@@ -3,8 +3,8 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import '../pages/settings.dart';
 import '../pages/home_page.dart';
-
 import '../pages/product_detail_page.dart';
+import '../utils/page_transition.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -91,7 +91,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
               if (widget.selectedIndex != 0) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
+                  SettingsSlideRoute(page: HomePage(), isFromRight: false),
                   (route) => false,
                 );
               }
@@ -125,7 +125,7 @@ class _CustomNavbarState extends State<CustomNavbar> {
               if (widget.selectedIndex != 2) {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  SettingsSlideRoute(page: const SettingsPage(), isFromRight: true),
                 );
               }
             },

@@ -342,3 +342,99 @@ class ScalePageRoute extends PageRouteBuilder {
           transitionDuration: const Duration(milliseconds: 300),
         );
 }
+
+// Untuk transisi horizontal smooth dari Home ke Settings
+class SettingsSlideRoute extends PageRouteBuilder {
+  final Widget page;
+  final bool isFromRight; // true = slide dari kanan, false = slide dari kiri
+
+  SettingsSlideRoute({required this.page, this.isFromRight = true})
+      : super(
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Slide animation - dari kanan untuk settings, dari kiri untuk home
+            var begin = Offset(isFromRight ? 1.0 : -1.0, 0.0);
+            var end = Offset.zero;
+            var slideCurve = Curves.easeOutQuart;
+            
+            var slideAnimation = Tween<Offset>(
+              begin: begin,
+              end: end,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: slideCurve,
+              ),
+            );
+
+            // Fade animation untuk transisi yang lebih smooth
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Interval(0.0, 0.8, curve: Curves.easeOut),
+              ),
+            );
+
+            // Scale animation untuk memberikan depth
+            var scaleAnimation = Tween<double>(
+              begin: 0.98,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: slideCurve,
+              ),
+            );
+
+            // Secondary animation untuk halaman yang ditinggalkan
+            var secondarySlideAnimation = Tween<Offset>(
+              begin: Offset.zero,
+              end: Offset(isFromRight ? -0.3 : 0.3, 0.0),
+            ).animate(
+              CurvedAnimation(
+                parent: secondaryAnimation,
+                curve: slideCurve,
+              ),
+            );
+
+            var secondaryScaleAnimation = Tween<double>(
+              begin: 1.0,
+              end: 0.95,
+            ).animate(
+              CurvedAnimation(
+                parent: secondaryAnimation,
+                curve: slideCurve,
+              ),
+            );
+
+            return Stack(
+              children: [
+                // Halaman yang ditinggalkan (dengan efek parallax)
+                SlideTransition(
+                  position: secondarySlideAnimation,
+                  child: ScaleTransition(
+                    scale: secondaryScaleAnimation,
+                    child: Container(),
+                  ),
+                ),
+                // Halaman baru
+                SlideTransition(
+                  position: slideAnimation,
+                  child: FadeTransition(
+                    opacity: fadeAnimation,
+                    child: ScaleTransition(
+                      scale: scaleAnimation,
+                      child: child,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 350),
+        );
+}
