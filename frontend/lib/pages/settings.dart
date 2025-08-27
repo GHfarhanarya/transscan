@@ -4,6 +4,8 @@ import 'package:frontend/config/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/custom_navbar.dart';
+import '../utils/page_transition.dart';
+import 'home_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -791,7 +793,12 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           child: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                SettingsSlideRoute(page: HomePage(), isFromRight: false),
+              );
+            },
           ),
         ),
       ),

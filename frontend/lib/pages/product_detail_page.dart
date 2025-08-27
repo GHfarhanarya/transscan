@@ -695,7 +695,7 @@ Color _getStockColor(int stock) {
     return Colors.red.shade700;
   } else if (stock == 0) {
     return Colors.grey.shade600;
-  } else if (stock < 20) {
+  } else if (stock < 21) {
     return Colors.orange.shade600; // warning
   } else {
     return Colors.green.shade700; // aman
@@ -708,7 +708,7 @@ String _getStockStatus(int stock) {
     return 'LOSS';
   } else if (stock == 0) {
     return 'HABIS';
-  } else if (stock < 20) {
+  } else if (stock < 21) {
     return 'RENDAH';
   } else {
     return 'AMAN';
