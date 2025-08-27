@@ -175,10 +175,10 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                                                 setFormData(prev => ({ ...prev, password: '123456' }));
                                                 setResetNotif(true);
                                                 setTimeout(() => setResetNotif(false), 2000);
-                                            }}
+                                            }}  
                                         >Reset Password</button>
                                         {resetNotif && (
-                                            <span className="text-green-600 text-xs">Password berhasil direset!</span>
+                                            <span className="text-green-600 text-xs">Password direset ke 123456</span>
                                         )}
                                     </div>
                                 ) : null}
@@ -217,7 +217,15 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
 
 // --- Main Dashboard Component ---
 export default function DashboardPage() {
+    const [filterStatus, setFilterStatus] = useState('All');
+    // Rekap per role
+    const countByRole = (role) => usersData.filter(u => u.role === role).length;
+    const countNonAktifByRole = (role) => usersData.filter(u => u.role === role && u.status === false).length;
     const [usersData, setUsersData] = useState([]);
+    // Hitung total user per role
+    const totalAkun = usersData.length;
+    const totalAkunAktif = usersData.filter(u => u.status === true).length;
+    const totalAkunNonAktif = usersData.filter(u => u.status === false).length;
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -227,6 +235,11 @@ export default function DashboardPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(PAGE_SIZE_OPTIONS[0]);
     const profileRef = useRef(null);
+    // State untuk log aktivitas
+    const [activityLogData, setActivityLogData] = useState([]);
+    const [currentActivityPage, setCurrentActivityPage] = useState(1);
+    const logsPerPage = 10;
+
     // Ambil nama admin login dari localStorage
     const [userName, setUserName] = useState(() => {
         let name = 'Admin';
@@ -291,6 +304,23 @@ export default function DashboardPage() {
         }
     };
 
+    // Dummy data untuk log aktivitas
+    useEffect(() => {
+        const dummyLogs = [
+            { time: '2025-08-26 09:00', user: 'Admin', activity: 'Login ke sistem' },
+            { time: '2025-08-26 09:05', user: 'Admin', activity: 'Menambah user baru: John Doe' },
+            { time: '2025-08-26 09:10', user: 'Management', activity: 'Melihat laporan penjualan' },
+            { time: '2025-08-26 09:15', user: 'Staff', activity: 'Mengupdate data produk: Apel' },
+            { time: '2025-08-26 09:20', user: 'Staff', activity: 'Mengupdate data produk: Jeruk' },
+            { time: '2025-08-26 09:25', user: 'Admin', activity: 'Menonaktifkan user: Jane Doe' },
+            { time: '2025-08-26 09:30', user: 'Management', activity: 'Melihat laporan stok' },
+            { time: '2025-08-26 09:35', user: 'Staff', activity: 'Logout' },
+            { time: '2025-08-26 09:40', user: 'Admin', activity: 'Login ke sistem' },
+            { time: '2025-08-26 09:45', user: 'Admin', activity: 'Mengubah role user: John Doe' },
+        ];
+        setActivityLogData(dummyLogs);
+    }, []);
+
     // Ambil data awal saat komponen dimuat
     useEffect(() => {
         fetchUsers();
@@ -316,13 +346,28 @@ export default function DashboardPage() {
                 const nameMatch = user.name && user.name.toLowerCase().includes(term);
                 return idMatch || nameMatch;
             })
-            .filter(user => filterRole === 'All' || user.role === filterRole);
-    }, [searchTerm, filterRole, usersData]);
+            .filter(user => filterRole === 'All' || user.role === filterRole)
+            .filter(user => {
+                if (filterStatus === 'All') return true;
+                if (filterStatus === 'Aktif') return user.status === true;
+                if (filterStatus === 'Tidak Aktif') return user.status === false;
+                return true;
+            });
+    }, [searchTerm, filterRole, filterStatus, usersData]);
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+    // Pagination untuk Log Aktivitas
+    const totalActivityPages = Math.ceil(activityLogData.length / logsPerPage);
+    const activityStartIndex = (currentActivityPage - 1) * logsPerPage;
+    const activityEndIndex = activityStartIndex + logsPerPage;
+    const paginatedLogs = activityLogData.slice(activityStartIndex, activityEndIndex);
+
+    const goToNextActivityPage = () => setCurrentActivityPage((page) => Math.min(page + 1, totalActivityPages));
+    const goToPreviousActivityPage = () => setCurrentActivityPage((page) => Math.max(page - 1, 1));
 
     const goToNextPage = () => setCurrentPage((page) => Math.min(page + 1, totalPages));
     const goToPreviousPage = () => setCurrentPage((page) => Math.max(page - 1, 1));
@@ -425,7 +470,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="hidden md:block">
                                 <div className="ml-10 flex items-baseline space-x-4">
-                                    <a href="#" className="bg-red-50 text-red-700 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                                    <a href="#" className="bg-red-50 text-red-600 px-3 py-2 rounded-md text-sm font-medium flex items-center hover:text-red-800 hover:bg-red-100 hover:outline-red-200 hover:outline hover:outline-2">
                                         <HomeIcon className="w-5 h-5 mr-2"/>Dashboard
                                     </a>
                                 </div>
@@ -441,8 +486,8 @@ export default function DashboardPage() {
                                     </button>
                                     {isProfileOpen && (
                                         <div className="origin-top absolute left-1/2 top-full mt-2 -translate-x-1/2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50">
-                                            <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
-                                            <a href="#" onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                                            <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-700">Your Profile</a>
+                                            <a href="#" onClick={handleLogout} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-700">Sign out</a>
                                         </div>
                                     )}
                                 </div>
@@ -486,13 +531,95 @@ export default function DashboardPage() {
                                                     <h1 className="text-3xl font-bold leading-tight text-gray-900">Dashboard</h1>
                                                     <RealtimeDateTime />
                                                 </div>
-                                                <div className="flex-shrink-0">
-                                                    <CalendarCard />
-                                                </div>
                                         </header>
 
-                    {/* User Management Section */}
-                    <div className="mt-10 px-4 sm:px-0">
+                                        {/* Kalender & User Summary Card sejajar */}
+                                        <div className="mt-10 px-4 sm:px-0">
+                                            <div className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-6 justify-center items-start max-w-7xl mx-auto">
+                                                {/* Card Total Akun dengan info per role */}
+                                                <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center border-t-4 border-red-500 w-full col-span-1">
+                                                    <div className="text-2xl font-bold text-gray-800 mb-2">Total Akun: {totalAkun}</div>
+                                                    <div className="flex flex-col sm:flex-row gap-2 w-full justify-center mb-2">
+                                                        <div className="flex-1 text-center">
+                                                            <span className="block text-lg font-semibold text-green-600">{totalAkunAktif}</span>
+                                                            <span className="text-sm text-gray-500">Akun Aktif</span>
+                                                        </div>
+                                                        <div className="flex-1 text-center">
+                                                            <span className="block text-lg font-semibold text-gray-500">{totalAkunNonAktif}</span>
+                                                            <span className="text-sm text-gray-500">Akun Non-Aktif</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-full mt-2">
+                                                        <div className="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-1"><UsersIcon className="w-5 h-5 text-blue-400" />Akun per Role</div>
+                                                        <div className="overflow-x-auto">
+                                                            <table className="min-w-full text-xs text-left border rounded">
+                                                                <thead>
+                                                                    <tr className="bg-gray-100 text-gray-700">
+                                                                        <th className="py-1 px-2 font-semibold">Role</th>
+                                                                        <th className="py-1 px-2 font-semibold text-green-600 text-center">Aktif</th>
+                                                                        <th className="py-1 px-2 font-semibold text-red-500 text-center">Non-aktif</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-red-500"></span><span className="font-semibold text-red-600">Admin</span></td>
+                                                                        <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('admin') - countNonAktifByRole('admin')}</td>
+                                                                        <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('admin')}</td>
+                                                                    </tr>
+                                                <tr>
+                                                    <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-yellow-400"></span><span className="font-semibold text-yellow-600">Management</span></td>
+                                                    <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('management') - countNonAktifByRole('management')}</td>
+                                                    <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('management')}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td className="py-1 px-2 flex items-center gap-2"><span className="inline-block w-2 h-2 rounded-full bg-green-500"></span><span className="font-semibold text-green-600">Staff</span></td>
+                                                    <td className="py-1 px-2 text-center font-bold text-green-600">{countByRole('staff') - countNonAktifByRole('staff')}</td>
+                                                    <td className="py-1 px-2 text-center font-bold text-red-500">{countNonAktifByRole('staff')}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                                                        {/* Log Aktivitas Dummy */}
+                                                        <div className="bg-white rounded-lg shadow p-6 w-full col-span-3 flex flex-col">
+                                                            <div className="flex justify-between items-center mb-4">
+                                                                <h2 className="text-xl font-bold text-gray-900">Log Aktivitas</h2>
+                                                                {/* Pagination for Activity Log */}
+                                                                <div className="flex items-center gap-2">
+                                                                    <button onClick={goToPreviousActivityPage} disabled={currentActivityPage === 1} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&lt;</button>
+                                                                    <span className="text-sm">Page {totalActivityPages === 0 ? 0 : currentActivityPage} of {totalActivityPages}</span>
+                                                                    <button onClick={goToNextActivityPage} disabled={currentActivityPage === totalActivityPages || paginatedLogs.length === 0} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&gt;</button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="overflow-y-auto flex-1" style={{ maxHeight: '185px', minHeight: '185px' }}>
+                                                                <table className="min-w-full text-sm text-left border rounded">
+                                                                    <thead>
+                                                                        <tr className="bg-gray-100 text-gray-700 sticky top-0">
+                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">Waktu</th>
+                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">User</th>
+                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">Aktivitas</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {paginatedLogs.length > 0 ? (
+                                                                            paginatedLogs.map((log, index) => (
+                                                                                <tr key={index}>
+                                                                                    <td className="py-2 px-3">{log.time}</td>
+                                                                                    <td className="py-2 px-3">{log.user}</td>
+                                                                                    <td className="py-2 px-3">{log.activity}</td>
+                                                                                </tr>
+                                                                            ))
+                                                                        ) : (
+                                                                            <tr>
+                                                                                <td colSpan="3" className="text-center py-4 text-gray-500">Tidak ada aktivitas.</td>
+                                                                            </tr>
+                                                                        )}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        </div>
+                        </div>
                          <div className="sm:flex sm:items-center sm:justify-between">
                             <div>
                                 <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
@@ -506,7 +633,7 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Table Controls */}
-                        <div className="mt-6 grid grid-cols-1 gap-y-4 sm:grid-cols-2 sm:gap-x-4">
+                        <div className="mt-6 grid grid-cols-1 gap-y-4 sm:grid-cols-3 sm:gap-x-4">
                             <div className="relative">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><SearchIcon className="h-5 w-5 text-gray-400" /></div>
                                 <input type="text" placeholder="Search by name or ID..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="block w-full rounded-md border-gray-300 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-500 shadow-sm focus:border-red-500 focus:ring-red-500"/>
@@ -517,6 +644,13 @@ export default function DashboardPage() {
                                     <option value="admin">Admin</option>
                                     <option value="management">Management</option>
                                     <option value="staff">Staff</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <select id="status" name="status" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-red-500 sm:text-sm">
+                                    <option value="All">Semua Status</option>
+                                    <option value="Aktif">Aktif</option>
+                                    <option value="Tidak Aktif">Tidak Aktif</option>
                                 </select>
                             </div>
                         </div>
@@ -553,9 +687,9 @@ export default function DashboardPage() {
                                                 <tr>
                                                     <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden sm:table-cell">Employee ID</th>
+                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Role</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                                                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 hidden md:table-cell">Job Title</th>
                                                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
                                                 </tr>
                                             </thead>
@@ -576,6 +710,7 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden sm:table-cell">{user.employee_id}</td>
+                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="whitespace-nowrap px-3 py-4 text-sm">
                                                                 {user.role === 'admin' && (
                                                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Admin</span>
@@ -594,7 +729,6 @@ export default function DashboardPage() {
                                                                     <span className="inline-block px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-700 border border-red-400">Tidak Aktif</span>
                                                                 )}
                                                             </td>
-                                                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 hidden md:table-cell">{user.job_title || '-'}</td>
                                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-left text-sm font-medium sm:pr-6">
                                                                 <div className="flex items-center gap-x-4">
                                                                     <button onClick={() => handleOpenModal('edit', user)} className="text-red-600 hover:text-red-900"><EditIcon className="w-5 h-5" /></button>
