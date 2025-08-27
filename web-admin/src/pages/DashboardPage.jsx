@@ -126,7 +126,7 @@ const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
                                 <input type="text" name="employee_id" value={formData.employee_id} onChange={handleChange} required disabled={mode === 'edit'} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm disabled:bg-gray-100" />
                             </div>
                             <div>
-                                <label htmlFor="name" cltabassName="block text-sm font-medium text-gray-700">Full Name</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
                                 <input type="text" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm" />
                             </div>
                              <div>

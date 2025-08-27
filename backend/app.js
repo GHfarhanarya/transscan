@@ -49,7 +49,9 @@ if (!fs.existsSync('uploads')){
     fs.mkdirSync('uploads');
 }
 
-// ===== AUTH ROUTES =====
+// ===== ROUTES =====
+const activityLogRoutes = require('./routes/activityLog');
+app.use('/activity-logs', activityLogRoutes);
 // Login endpoint
 app.post('/login', async (req, res) => {
   try {
