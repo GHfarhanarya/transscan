@@ -87,7 +87,8 @@ app.post('/login', async (req, res) => {
       user: {
         employee_id: user.employee_id,
         name: user.name,
-        role: user.role
+        role: user.role,
+	job_title:user.job_title
       }
     });
   } catch (err) {
