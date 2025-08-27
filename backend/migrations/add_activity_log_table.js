@@ -9,7 +9,13 @@ module.exports = {
       },
       userid: {
         type: Sequelize.STRING(10),
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'employee_id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       action: {
         type: Sequelize.STRING,
