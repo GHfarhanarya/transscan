@@ -304,21 +304,24 @@ export default function DashboardPage() {
         }
     };
 
-    // Dummy data untuk log aktivitas
+    // Ambil data log aktivitas dari backend
     useEffect(() => {
-        const dummyLogs = [
-            { time: '2025-08-26 09:00', user: 'Admin', activity: 'Login ke sistem' },
-            { time: '2025-08-26 09:05', user: 'Admin', activity: 'Menambah user baru: John Doe' },
-            { time: '2025-08-26 09:10', user: 'Management', activity: 'Melihat laporan penjualan' },
-            { time: '2025-08-26 09:15', user: 'Staff', activity: 'Mengupdate data produk: Apel' },
-            { time: '2025-08-26 09:20', user: 'Staff', activity: 'Mengupdate data produk: Jeruk' },
-            { time: '2025-08-26 09:25', user: 'Admin', activity: 'Menonaktifkan user: Jane Doe' },
-            { time: '2025-08-26 09:30', user: 'Management', activity: 'Melihat laporan stok' },
-            { time: '2025-08-26 09:35', user: 'Staff', activity: 'Logout' },
-            { time: '2025-08-26 09:40', user: 'Admin', activity: 'Login ke sistem' },
-            { time: '2025-08-26 09:45', user: 'Admin', activity: 'Mengubah role user: John Doe' },
-        ];
-        setActivityLogData(dummyLogs);
+        const fetchLogs = async () => {
+            try {
+                const token = localStorage.getItem('jwtToken');
+                const res = await fetch(`${API_URL}/activity-logs`, {
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+                if (!res.ok) throw new Error('Gagal mengambil data log aktivitas');
+                const data = await res.json();
+                setActivityLogData(data);
+            } catch (err) {
+                setActivityLogData([]);
+            }
+        };
+        fetchLogs();
     }, []);
 
     // Ambil data awal saat komponen dimuat
@@ -581,7 +584,7 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </div>
-                                                        {/* Log Aktivitas Dummy */}
+                                                        {/* Log Aktivitas dari Backend */}
                                                         <div className="bg-white rounded-lg shadow p-6 w-full col-span-3 flex flex-col">
                                                             <div className="flex justify-between items-center mb-4">
                                                                 <h2 className="text-xl font-bold text-gray-900">Log Aktivitas</h2>
@@ -598,21 +601,23 @@ export default function DashboardPage() {
                                                                         <tr className="bg-gray-100 text-gray-700 sticky top-0">
                                                                             <th className="py-2 px-3 font-semibold bg-gray-100">Waktu</th>
                                                                             <th className="py-2 px-3 font-semibold bg-gray-100">User</th>
-                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">Aktivitas</th>
+                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">Aksi</th>
+                                                                            <th className="py-2 px-3 font-semibold bg-gray-100">Detail</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         {paginatedLogs.length > 0 ? (
                                                                             paginatedLogs.map((log, index) => (
-                                                                                <tr key={index}>
-                                                                                    <td className="py-2 px-3">{log.time}</td>
-                                                                                    <td className="py-2 px-3">{log.user}</td>
-                                                                                    <td className="py-2 px-3">{log.activity}</td>
+                                                                                <tr key={log.id || index}>
+                                                                                    <td className="py-2 px-3">{log.timestamp ? new Date(log.timestamp).toLocaleString() : '-'}</td>
+                                                                                    <td className="py-2 px-3">{log.User?.name || log.userId || '-'}</td>
+                                                                                    <td className="py-2 px-3">{log.action || '-'}</td>
+                                                                                    <td className="py-2 px-3">{log.details || '-'}</td>
                                                                                 </tr>
                                                                             ))
                                                                         ) : (
                                                                             <tr>
-                                                                                <td colSpan="3" className="text-center py-4 text-gray-500">Tidak ada aktivitas.</td>
+                                                                                <td colSpan="4" className="text-center py-4 text-gray-500">Tidak ada aktivitas.</td>
                                                                             </tr>
                                                                         )}
                                                                     </tbody>

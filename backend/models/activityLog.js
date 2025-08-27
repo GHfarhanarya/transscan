@@ -3,8 +3,8 @@ const sequelize = require('../db');
 
 
 const ActivityLog = sequelize.define('ActivityLog', {
-  userId: {
-    type: DataTypes.STRING(10), //sama seperti employee_id
+  userid: {
+    type: DataTypes.STRING(10),
     allowNull: false,
   },
   action: {
@@ -19,9 +19,12 @@ const ActivityLog = sequelize.define('ActivityLog', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
   },
+}, {
+  tableName: 'activitylogs',
+  timestamps: false
 });
 
 const User = require('./user');
-ActivityLog.belongsTo(User, { foreignKey: 'userId', targetKey: 'employee_id' });
+ActivityLog.belongsTo(User, { foreignKey: 'userid', targetKey: 'employee_id' });
 
 module.exports = ActivityLog;
