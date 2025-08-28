@@ -476,16 +476,32 @@ app.get('/product/search/name/:name', async (req, res) => {
       return res.status(404).json({ message: "Produk tidak ditemukan" });
     }
 
-    // Format response sebagai array of products
-    const formattedProducts = products.map(product => ({
-      item_name: product.item_name,
-      item_code: product.item_code,
-      barcode: product.barcode,
-      normal_price: product.normal_price,
-      harga_promo: product.harga_promo,
-      stock: product.stock,
-      image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
-    }));
+    // Gunakan Map untuk mengelompokkan produk berdasarkan item_code
+    const productMap = new Map();
+    
+    products.forEach(product => {
+      const key = product.item_code || product.item_name; // Gunakan item_code atau item_name sebagai key
+      
+      // Jika item belum ada di Map, tambahkan
+      if (!productMap.has(key)) {
+        productMap.set(key, {
+          item_name: product.item_name,
+          item_code: product.item_code,
+          barcode: product.barcode,
+          normal_price: product.normal_price,
+          harga_promo: product.harga_promo,
+          stock: product.stock,
+          image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null,
+          variants_count: 1 // Tambah counter untuk menunjukkan jumlah varian
+        });
+      } else {
+        // Jika item sudah ada, increment counter
+        productMap.get(key).variants_count++;
+      }
+    });
+
+    // Convert Map ke array
+    const formattedProducts = Array.from(productMap.values());
 
     res.json(formattedProducts);
   } catch (err) {

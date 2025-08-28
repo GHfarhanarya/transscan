@@ -75,21 +75,36 @@ class ProductListPage extends StatelessWidget {
                   child: ListTile(
                     contentPadding: EdgeInsets.all(16),
                     title: Text(
-                      product['name'] ?? 'Unnamed Product',
+                      product['item_name'] ?? 'Unnamed Product',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    subtitle: Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Barcode: ${product['barcode'] ?? 'N/A'}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 8),
+                        Text(
+                          'Kode: ${product['item_code'] ?? 'N/A'}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
+                        if (product['variants_count'] != null && product['variants_count'] > 1)
+                          Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Tersedia ${product['variants_count']} varian',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     trailing: ElevatedButton(
                       onPressed: () {
