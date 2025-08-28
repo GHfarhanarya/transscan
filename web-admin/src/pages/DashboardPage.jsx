@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
 import ScanLogo from '../assets/logo-app.svg?react';
 import RealtimeDateTime from './RealtimeDateTime';
 import CalendarCard from '../components/CalendarCard';
@@ -54,6 +55,11 @@ const SpinnerIcon = (props) => (
 // --- Konfigurasi API ---
 const API_URL = 'http://35.219.66.90'; 
 const PAGE_SIZE_OPTIONS = [5, 25, 50];
+
+// --- Socket.IO Connection ---
+const socket = io(API_URL, {
+    autoConnect: false // Akan connect manual ketika user login
+});
 
 // --- Komponen Modal Pengguna
 const UserModal = ({ isOpen, onClose, onSave, user, mode }) => {
@@ -324,6 +330,32 @@ export default function DashboardPage() {
         fetchLogs();
     }, []);
 
+    // Setup Socket.IO untuk real-time activity log updates
+    useEffect(() => {
+        // Connect ke Socket.IO server
+        socket.connect();
+        
+        // Listen untuk new activity events
+        socket.on('newActivity', (newActivity) => {
+            console.log('New activity received:', newActivity);
+            setActivityLogData(prevData => {
+                // Tambahkan activity baru di awal array
+                const updatedData = [newActivity, ...prevData];
+                // Limit hanya 50 log terbaru untuk performa
+                return updatedData.slice(0, 50);
+            });
+            
+            // Reset ke halaman pertama jika ada activity baru
+            setCurrentActivityPage(1);
+        });
+
+        // Cleanup connection saat component unmount
+        return () => {
+            socket.off('newActivity');
+            socket.disconnect();
+        };
+    }, []);
+
     // Ambil data awal saat komponen dimuat
     useEffect(() => {
         fetchUsers();
@@ -587,7 +619,13 @@ export default function DashboardPage() {
                                                         {/* Log Aktivitas dari Backend */}
                                                         <div className="bg-white rounded-lg shadow p-6 w-full col-span-3 flex flex-col">
                                                             <div className="flex justify-between items-center mb-4">
-                                                                <h2 className="text-xl font-bold text-gray-900">Log Aktivitas</h2>
+                                                                <div className="flex items-center gap-3">
+                                                                    <h2 className="text-xl font-bold text-gray-900">Log Aktivitas</h2>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                                                        <span className="text-xs text-green-600 font-medium">Real-time</span>
+                                                                    </div>
+                                                                </div>
                                                                 {/* Pagination for Activity Log */}
                                                                 <div className="flex items-center gap-2">
                                                                     <button onClick={goToPreviousActivityPage} disabled={currentActivityPage === 1} className="px-2 py-1 rounded bg-gray-200 text-gray-600 disabled:opacity-50">&lt;</button>
