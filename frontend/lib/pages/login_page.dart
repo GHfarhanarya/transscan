@@ -180,23 +180,20 @@ class _LoginPageState extends State<LoginPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 75),
+                  const SizedBox(height: 30),
+                  Image.asset(
+                    'assets/TransRetail.png',
+                    width: 110,
+                  ),
+                  const SizedBox(height: 80),
                   SvgPicture.asset(
                     'assets/applogo.svg',
                     width: 135,
                     color: Color(0xFFE31837),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 16),
                   Align(
                     alignment: Alignment.center,
-                    child: Text(
-                      'Masuk',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 30),
                   _buildTextField(

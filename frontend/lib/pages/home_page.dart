@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
@@ -234,9 +235,10 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
               color: Colors.white, borderRadius: BorderRadius.circular(20)),
-          child: Image.asset(
-            'assets/TransRetail.png',
-            height: 10,
+          child: SvgPicture.asset(
+            'assets/tm 1.svg',
+            width: 90,
+            color: Color(0xFFE31837),
           ),
         ),
         foregroundColor: Colors.white,

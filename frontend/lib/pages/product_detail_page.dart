@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../config/api_config.dart';
 import '../widgets/custom_navbar.dart';
 import '../utils/page_transition.dart';
@@ -36,7 +37,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return userRole == 'admin' || userRole == 'management';
   }
 
-  // Fungsi Print/cetak
+// Fungsi Print/cetak
   Future<void> printTransmartLabel(Map<String, dynamic> product) async {
     final pdf = pw.Document();
 
@@ -45,6 +46,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         pageFormat: PdfPageFormat(80 * PdfPageFormat.mm,
             50 * PdfPageFormat.mm), // ukuran label 8x5 cm
         build: (pw.Context context) {
+          final hargaPromo = product['harga_promo'];
+          final hargaNormal = product['normal_price'];
+
+          final bool adaPromo = hargaPromo != null && hargaPromo != 0;
+
           return pw.Container(
             decoration: pw.BoxDecoration(
               border: pw.Border.all(color: PdfColors.black, width: 1),
@@ -84,11 +90,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
                 pw.Spacer(),
 
-                // Harga Promo
+                // ===== Harga Utama (sesuai kondisi promo / normal) =====
                 pw.Padding(
                   padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                   child: pw.Text(
-                    "Rp ${_formatPrice(product['harga_promo'])}",
+                    "Rp ${_formatPrice(
+                      adaPromo ? hargaPromo : hargaNormal,
+                    )}",
                     style: pw.TextStyle(
                       fontSize: 22,
                       fontWeight: pw.FontWeight.bold,
@@ -97,12 +105,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
 
-                // Harga Normal Dicoret (kalau ada promo)
-                if (product['normal_price'] != product['harga_promo'])
+                // ===== Harga Normal dicoret kalau ada promo =====
+                if (adaPromo && hargaNormal != null)
                   pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 6),
                     child: pw.Text(
-                      "Rp ${_formatPrice(product['normal_price'])}",
+                      "Rp ${_formatPrice(hargaNormal)}",
                       style: pw.TextStyle(
                         fontSize: 12,
                         decoration: pw.TextDecoration.lineThrough,
@@ -114,18 +122,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 pw.SizedBox(height: 6),
 
                 // Barcode
-                pw.Padding(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 6),
-                  child: pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      pw.Text(
-                        "Barcode: ${product['barcode'] ?? '-'}",
-                        style: pw.TextStyle(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
+                // pw.Padding(
+                //   padding: const pw.EdgeInsets.symmetric(horizontal: 6),
+                //   child: pw.Row(
+                //     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       pw.Text(
+                //         "Barcode: ${product['barcode'] ?? '-'}",
+                //         style: pw.TextStyle(fontSize: 10),
+                //       ),
+                //     ],
+                //   ),
+                // ),
 
                 pw.SizedBox(height: 4),
               ],
@@ -167,16 +175,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade400,
-                  blurRadius: 6,
-                )
-              ]),
-          child: Image.asset('assets/TransRetail.png'),
-          height: 26,
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SvgPicture.asset(
+            'assets/tm 1.svg',
+            width: 90,
+            color: Color(0xFFE31837),
+          ),
         ),
         centerTitle: false,
       ),
@@ -436,14 +442,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFE31837).withOpacity(0.1),
-                          Color(0xFFE31837).withOpacity(0.05),
-                        ],
+                        colors: (widget.product['harga_promo'] == null ||
+                                widget.product['harga_promo'] == 0)
+                            ? [
+                                Colors.grey.withOpacity(0.1),
+                                Colors.grey.withOpacity(0.05),
+                              ]
+                            : [
+                                Colors.green.withOpacity(0.1),
+                                Colors.green.withOpacity(0.05),
+                              ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Color(0xFFE31837).withOpacity(0.2),
+                        color: (widget.product['harga_promo'] == null ||
+                                widget.product['harga_promo'] == 0)
+                            ? Colors.black26
+                            : Colors.green.withOpacity(0.4),
                       ),
                     ),
                     child: Column(
@@ -453,7 +468,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           children: [
                             Icon(
                               Icons.local_offer,
-                              color: Color(0xFFE31837),
+                              color: (widget.product['harga_promo'] == null ||
+                                      widget.product['harga_promo'] == 0)
+                                  ? Colors.black12.withOpacity(0.7)
+                                  : Colors.green,
                               size: 24,
                             ),
                             SizedBox(width: 8),
@@ -462,7 +480,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFFE31837),
+                                color: (widget.product['harga_promo'] == null ||
+                                        widget.product['harga_promo'] == 0)
+                                    ? Colors.black12.withOpacity(0.7)
+                                    : Colors.green,
                               ),
                             ),
                           ],
@@ -474,11 +495,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              'Rp ${_formatPrice(widget.product['harga_promo'] ?? widget.product['pricePromo'] ?? widget.product['normal_price'] ?? widget.product['priceNormal'])}',
+                              'Rp ${_formatPrice(
+                                (widget.product['harga_promo'] == null ||
+                                        widget.product['harga_promo'] == 0)
+                                    ? widget.product['normal_price'] ?? 0
+                                    : widget.product['harga_promo'],
+                              )}',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFFE31837),
+                                color: (widget.product['harga_promo'] == null ||
+                                        widget.product['harga_promo'] == 0)
+                                    ? Colors.black12.withOpacity(0.7)
+                                    : Colors.green,
                               ),
                             ),
                           ],
@@ -487,34 +516,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         SizedBox(height: 12),
 
                         /// ===== Normal Price Label with strikethrough if there's promo =====
-                        Row(
-                          children: [
-                            Text(
-                              'Harga Normal: ',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
+                        if (widget.product['harga_promo'] != null &&
+                            widget.product['harga_promo'] != 0) ...[
+                          Row(
+                            children: [
+                              Text(
+                                'Harga Normal: ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                                decoration:
-                                    (widget.product['harga_promo'] != null &&
-                                            widget.product['normal_price'] !=
-                                                null &&
-                                            widget.product['normal_price'] !=
-                                                widget.product['harga_promo'])
-                                        ? TextDecoration.lineThrough
-                                        : TextDecoration.none,
+                              Text(
+                                'Rp ${_formatPrice(widget.product['normal_price'] ?? 0)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -669,7 +694,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 // Format harga Indonesia
 String _formatPrice(dynamic price) {
-  if (price == null) return '0,00';
+  if (price == null) return '0,-';
 
   try {
     String strPrice = double.parse(price.toString()).toStringAsFixed(2);
@@ -681,11 +706,16 @@ String _formatPrice(dynamic price) {
       (Match m) => '${m[1]}.',
     );
 
-    // Ganti titik desimal jadi koma
-    return '$integerPart,${parts[1]}';
+    // Jika desimalnya 00 → pakai tanda "-"
+    if (parts[1] == "00") {
+      return "$integerPart,-";
+    }
+
+    // Kalau ada desimal selain 00, ganti titik desimal jadi koma
+    return "$integerPart,${parts[1]}";
   } catch (e) {
     print('Error formatting price: $price');
-    return '0,00';
+    return '0,-';
   }
 }
 
