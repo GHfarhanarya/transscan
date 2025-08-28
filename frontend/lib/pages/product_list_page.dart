@@ -85,23 +85,44 @@ class ProductListPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 8),
-                        Text(
-                          'Kode: ${product['item_code'] ?? 'N/A'}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.qr_code, size: 16, color: Colors.grey[600]),
+                            SizedBox(width: 4),
+                            Text(
+                              'Kode: ${product['item_code'] ?? 'N/A'}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
                         if (product['variants_count'] != null && product['variants_count'] > 1)
                           Padding(
                             padding: EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Tersedia ${product['variants_count']} varian',
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.inventory_2_outlined, 
+                                     size: 16, 
+                                     color: Colors.blue[700]),
+                                SizedBox(width: 4),
+                                Text(
+                                  '${product['variants_count']} varian',
+                                  style: TextStyle(
+                                    color: Colors.blue[700],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  ' • Total stok: ${product['stock'] ?? 0}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                       ],
