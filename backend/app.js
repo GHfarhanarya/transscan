@@ -6,6 +6,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Pastikan dotenv dimuat paling atas untuk membaca file .env
 require('dotenv').config();
@@ -37,6 +39,26 @@ const upload = multer({
 });
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// Export io untuk digunakan di utils lain
+global.io = io;
+
 // Gunakan PORT dari .env atau default ke 3000
 const PORT = process.env.PORT || 3000;
 
@@ -467,5 +489,8 @@ app.get('/product/search/name/:name', async (req, res) => {
 
 // Sinkronisasi database dan jalankan server
 sequelize.sync().then(() => {
-  app.listen(PORT, '0.0.0.0', () => console.log(`Server running on http://0.0.0.0:${PORT}`));
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    console.log('Socket.IO server ready for real-time connections');
+  });
 });

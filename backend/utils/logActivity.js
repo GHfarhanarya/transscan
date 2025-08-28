@@ -8,7 +8,7 @@ async function logActivity({ userId, action, details }) {
       return;
     }
 
-    await ActivityLog.create({
+    const activityLog = await ActivityLog.create({
       userid: userId,  // Map userId parameter ke userid field di model
       action,
       details,
@@ -16,6 +16,22 @@ async function logActivity({ userId, action, details }) {
     });
     
     console.log(`Activity logged: ${action} by user ${userId}`);
+    
+    // Emit real-time event ke semua client yang terhubung
+    if (global.io) {
+      const activityData = {
+        id: activityLog.id,
+        userid: activityLog.userid,
+        action: activityLog.action,
+        details: activityLog.details,
+        timestamp: activityLog.timestamp
+      };
+      
+      global.io.emit('newActivity', activityData);
+      console.log('Real-time activity emitted:', activityData);
+    }
+    
+    return activityLog;
   } catch (err) {
     console.error('Gagal mencatat log aktivitas:', err);
   }
