@@ -463,24 +463,31 @@ app.get('/product/search/barcode/:barcode', async (req, res) => {
 app.get('/product/search/name/:name', async (req, res) => {
   try {
     const searchName = req.params.name;
-    const product = await Product.findOne({ 
+    const products = await Product.findAll({ 
       where: { 
         item_name: {
           [require('sequelize').Op.like]: `%${searchName}%`
         }
-      } 
+      },
+      limit: 50 // Batasi hasil pencarian
     });
-    if (!product) return res.status(404).json({ message: "Produk tidak ditemukan" });
-    res.json({
+    
+    if (products.length === 0) {
+      return res.status(404).json({ message: "Produk tidak ditemukan" });
+    }
+
+    // Format response sebagai array of products
+    const formattedProducts = products.map(product => ({
       item_name: product.item_name,
       item_code: product.item_code,
       barcode: product.barcode,
       normal_price: product.normal_price,
       harga_promo: product.harga_promo,
       stock: product.stock,
-      // PERBAIKAN: Gunakan BASE_URL dari .env
       image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null
-    });
+    }));
+
+    res.json(formattedProducts);
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }

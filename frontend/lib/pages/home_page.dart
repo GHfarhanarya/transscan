@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
 import 'product_detail_page.dart' as pdp;
+import 'product_list_page.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_navbar.dart';
 import '../utils/page_transition.dart';
@@ -117,7 +118,6 @@ class _HomePageState extends State<HomePage> {
       final res = await http.get(
         url,
         headers: {
-          // Beberapa endpoint mungkin tidak butuh token, tapi menyertakannya tidak masalah
           'Authorization': 'Bearer $token',
         },
       );
@@ -125,15 +125,39 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       if (res.statusCode == 200) {
-        final Map<String, dynamic> product = json.decode(res.body);
-
-        // Navigasi ke halaman detail produk
-        Navigator.push(
-          context,
-          DetailPageRoute(
-            page: pdp.ProductDetailPage(product: product),
-          ),
-        );
+        final data = json.decode(res.body);
+        
+        if (isBarcode) {
+          // Jika pencarian berdasarkan barcode, langsung ke detail
+          Navigator.push(
+            context,
+            DetailPageRoute(
+              page: pdp.ProductDetailPage(product: data),
+            ),
+          );
+        } else {
+          // Jika pencarian berdasarkan nama, tampilkan list produk
+          if (data is List) {
+            // Jika response berupa array produk
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductListPage(
+                  products: List<Map<String, dynamic>>.from(data),
+                  searchQuery: query,
+                ),
+              ),
+            );
+          } else if (data is Map<String, dynamic>) {
+            // Jika hanya satu produk ditemukan
+            Navigator.push(
+              context,
+              DetailPageRoute(
+                page: pdp.ProductDetailPage(product: data),
+              ),
+            );
+          }
+        }
       } else {
         // Jika produk tidak ditemukan oleh server
         ScaffoldMessenger.of(context).showSnackBar(
