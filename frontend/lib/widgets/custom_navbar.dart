@@ -20,7 +20,6 @@ class CustomNavbar extends StatefulWidget {
 }
 
 class _CustomNavbarState extends State<CustomNavbar> {
-  bool _isLoading = false;
 
   Future<void> scanBarcode() async {
     try {
@@ -106,11 +105,6 @@ class _CustomNavbarState extends State<CustomNavbar> {
           duration: Duration(seconds: 4),
         ),
       );
-    } finally {
-      // Pastikan loading indicator selalu berhenti
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
   }
 
