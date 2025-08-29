@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'product_detail_page.dart' as pdp;
 import '../utils/page_transition.dart';
 
-class ProductListPage extends StatelessWidget {
+class ProductListPage extends StatefulWidget {
   final List<Map<String, dynamic>> products;
   final String searchQuery;
 
@@ -11,6 +12,30 @@ class ProductListPage extends StatelessWidget {
     required this.products,
     required this.searchQuery,
   }) : super(key: key);
+
+  @override
+  _ProductListPageState createState() => _ProductListPageState();
+}
+
+class _ProductListPageState extends State<ProductListPage> {
+  String? userRole;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userRole = prefs.getString('role');
+    });
+  }
+
+  bool _canViewSensitiveInfo() {
+    return userRole == 'admin' || userRole == 'management';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +66,7 @@ class ProductListPage extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Hasil pencarian untuk "$searchQuery"',
+                    'Hasil pencarian untuk "${widget.searchQuery}"',
                     style: TextStyle(
                       color: Colors.grey[800],
                       fontWeight: FontWeight.w500,
@@ -49,7 +74,7 @@ class ProductListPage extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${products.length} item',
+                  '${widget.products.length} item',
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w600,
@@ -63,9 +88,9 @@ class ProductListPage extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(16),
-              itemCount: products.length,
+              itemCount: widget.products.length,
               itemBuilder: (context, index) {
-                final product = products[index];
+                final product = widget.products[index];
                 return Card(
                   elevation: 2,
                   margin: EdgeInsets.only(bottom: 12),
@@ -85,23 +110,48 @@ class ProductListPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 8),
-                        Text(
-                          'Kode: ${product['item_code'] ?? 'N/A'}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
+                        // Tampilkan item_code hanya untuk admin dan management
+                        if (_canViewSensitiveInfo())
+                          Row(
+                            children: [
+                              Icon(Icons.qr_code, size: 16, color: Colors.grey[600]),
+                              SizedBox(width: 4),
+                              Text(
+                                'Kode: ${product['item_code'] ?? 'N/A'}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
                         if (product['variants_count'] != null && product['variants_count'] > 1)
                           Padding(
                             padding: EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Tersedia ${product['variants_count']} varian',
-                              style: TextStyle(
-                                color: Colors.blue[700],
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.inventory_2_outlined, 
+                                     size: 16, 
+                                     color: Colors.blue[700]),
+                                SizedBox(width: 4),
+                                Text(
+                                  '${product['variants_count']} varian',
+                                  style: TextStyle(
+                                    color: Colors.blue[700],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                // Tampilkan stok hanya untuk admin dan management
+                                if (_canViewSensitiveInfo())
+                                  Text(
+                                    ' • Total stok: ${product['stock'] ?? 0}',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                       ],

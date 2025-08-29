@@ -476,32 +476,36 @@ app.get('/product/search/name/:name', async (req, res) => {
       return res.status(404).json({ message: "Produk tidak ditemukan" });
     }
 
-    // Gunakan Map untuk mengelompokkan produk berdasarkan item_code
-    const productMap = new Map();
+    // Buat Map untuk mengelompokkan produk
+    const productGroups = new Map();
     
+    // Kelompokkan produk berdasarkan kombinasi item_name dan item_code
     products.forEach(product => {
-      const key = product.item_code || product.item_name; // Gunakan item_code atau item_name sebagai key
-      
-      // Jika item belum ada di Map, tambahkan
-      if (!productMap.has(key)) {
-        productMap.set(key, {
-          item_name: product.item_name,
-          item_code: product.item_code,
-          barcode: product.barcode,
-          normal_price: product.normal_price,
-          harga_promo: product.harga_promo,
-          stock: product.stock,
-          image: product.image ? `${process.env.BASE_URL}/uploads/${product.image}` : null,
-          variants_count: 1 // Tambah counter untuk menunjukkan jumlah varian
-        });
-      } else {
-        // Jika item sudah ada, increment counter
-        productMap.get(key).variants_count++;
+      const key = `${product.item_name}|${product.item_code}`;
+      if (!productGroups.has(key)) {
+        productGroups.set(key, []);
       }
+      productGroups.get(key).push(product);
     });
 
-    // Convert Map ke array
-    const formattedProducts = Array.from(productMap.values());
+    // Format hasil pengelompokan
+    const formattedProducts = [];
+    productGroups.forEach((group) => {
+      // Ambil produk pertama sebagai representasi kelompok
+      const representative = group[0];
+      formattedProducts.push({
+        item_name: representative.item_name,
+        item_code: representative.item_code,
+        barcode: representative.barcode,
+        normal_price: representative.normal_price,
+        harga_promo: representative.harga_promo,
+        stock: group.reduce((total, p) => total + (p.stock || 0), 0), // Jumlahkan stock
+        image: representative.image ? `${process.env.BASE_URL}/uploads/${representative.image}` : null,
+        variants_count: group.length,
+        // Simpan semua barcode untuk referensi
+        all_barcodes: group.map(p => p.barcode)
+      });
+    });
 
     res.json(formattedProducts);
   } catch (err) {
