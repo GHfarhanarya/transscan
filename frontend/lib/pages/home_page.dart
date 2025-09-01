@@ -27,53 +27,54 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // Fungsi untuk scan barcode dari kamera
-  Future<void> scanBarcode() async {
+Future<void> scanBarcode() async {
+  if (!mounted) return;
+  setState(() => _isLoading = true);
+
+  try {
+    // Tambahkan delay 500ms (0,5 detik) sebelum buka kamera
+    await Future.delayed(const Duration(milliseconds: 5000));
+
+    String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666', 'Cancel', true, ScanMode.BARCODE);
+
     if (!mounted) return;
-    setState(() => _isLoading = true);
 
-    try {
-      String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          '#ff6666', 'Cancel', true, ScanMode.BARCODE);
-
-      if (!mounted) return;
-
-      if (barcodeScanRes == '-1') {
-        // Jika scan dibatalkan oleh pengguna
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      // Langsung fetch data dari server berdasarkan hasil scan
-      await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
-    } catch (e) {
-      if (!mounted) return;
+    if (barcodeScanRes == '-1') {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Gagal melakukan scan. Pastikan kamera dapat mengakses kode barcode.',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.orange[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.all(16),
-          duration: Duration(seconds: 4),
-        ),
-      );
+      return;
     }
+
+    await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
+  } catch (e) {
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Gagal melakukan scan. Pastikan kamera dapat mengakses kode barcode.',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.orange[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 4),
+      ),
+    );
   }
+}
+
 
   // Fungsi untuk mencari produk dari input manual
   Future<void> _searchProduct() async {

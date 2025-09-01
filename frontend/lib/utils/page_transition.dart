@@ -54,45 +54,7 @@ class SmoothLoginRoute extends PageRouteBuilder {
         );
 }
 
-// Untuk form validation yang smooth
-class FormValidationRoute extends PageRouteBuilder {
-  final Widget page;
 
-  FormValidationRoute({required this.page})
-      : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var scaleAnimation = Tween<double>(
-              begin: 0.95,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.elasticOut,
-              ),
-            );
-
-            var fadeAnimation = Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ),
-            );
-
-            return FadeTransition(
-              opacity: fadeAnimation,
-              child: ScaleTransition(
-                scale: scaleAnimation,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 400),
-        );
-}
 
 // Untuk halaman detail yang dibuka dari item list (slide dari kanan)
 class DetailPageRoute extends PageRouteBuilder {
@@ -131,48 +93,7 @@ class DetailPageRoute extends PageRouteBuilder {
         );
 }
 
-// Untuk modal atau dialog (scale dari tengah)
-class ModalPageRoute extends PageRouteBuilder {
-  final Widget page;
 
-  ModalPageRoute({required this.page})
-      : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var scaleAnimation = Tween<double>(
-              begin: 0.85,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCubic,
-              ),
-            );
-
-            var fadeAnimation = Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOut,
-              ),
-            );
-
-            return FadeTransition(
-              opacity: fadeAnimation,
-              child: ScaleTransition(
-                scale: scaleAnimation,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-          opaque: false,
-          barrierDismissible: true,
-          barrierColor: Colors.black54,
-        );
-}
 
 // Untuk navigasi antar section utama (slide dari bawah) - Lebih smooth
 class MainPageRoute extends PageRouteBuilder {
@@ -265,83 +186,7 @@ class ExitPageRoute extends PageRouteBuilder {
         );
 }
 
-class SlidePageRoute extends PageRouteBuilder {
-  final Widget page;
 
-  SlidePageRoute({required this.page})
-      : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var begin = const Offset(1.0, 0.0);
-            var end = Offset.zero;
-            var curve = Curves.easeInOutCubic;
-            var tween =
-                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
-
-            // Fade transition
-            var fadeAnimation = Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: Interval(0.0, 1.0, curve: Curves.easeOut),
-              ),
-            );
-
-            return SlideTransition(
-              position: offsetAnimation,
-              child: FadeTransition(
-                opacity: fadeAnimation,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-        );
-}
-
-class ScalePageRoute extends PageRouteBuilder {
-  final Widget page;
-
-  ScalePageRoute({required this.page})
-      : super(
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            var curve = Curves.easeInOutCubic;
-
-            var scaleAnimation = Tween<double>(
-              begin: 0.9,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: curve,
-              ),
-            );
-
-            var fadeAnimation = Tween<double>(
-              begin: 0.0,
-              end: 1.0,
-            ).animate(
-              CurvedAnimation(
-                parent: animation,
-                curve: curve,
-              ),
-            );
-
-            return FadeTransition(
-              opacity: fadeAnimation,
-              child: ScaleTransition(
-                scale: scaleAnimation,
-                child: child,
-              ),
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 300),
-        );
-}
 
 // Untuk transisi horizontal smooth dari Home ke Settings
 class SettingsSlideRoute extends PageRouteBuilder {

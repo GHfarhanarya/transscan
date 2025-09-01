@@ -348,7 +348,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   /// ===== Product Name =====
-                  Text(
+                  SelectableText(
                     widget.product['item_name'] ??
                         widget.product['name'] ??
                         'Nama Produk',
@@ -378,7 +378,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           size: 20,
                         ),
                         SizedBox(width: 8),
-                        Text(
+                        SelectableText(
                           widget.product['barcode'] ?? '',
                           style: TextStyle(
                             fontSize: 14,
