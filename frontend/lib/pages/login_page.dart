@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../config/api_config.dart';
 import '../utils/page_transition.dart';
-import '../widgets/smooth_widgets.dart';
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {

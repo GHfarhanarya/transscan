@@ -1,5 +1,61 @@
 import 'package:flutter/material.dart';
 
+// Untuk transisi konten saja (navbar tetap di tempat)
+class ContentSlideRoute extends PageRouteBuilder {
+  final Widget content;
+  final bool isFromRight;
+  final PreferredSizeWidget? appBar;
+  final Color? backgroundColor;
+  final int selectedIndex;
+
+  ContentSlideRoute({
+    required this.content,
+    required this.selectedIndex,
+    this.isFromRight = true,
+    this.appBar,
+    this.backgroundColor,
+  }) : super(
+          pageBuilder: (context, animation, secondaryAnimation) => content,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Slide animation horizontal
+            var begin = Offset(isFromRight ? 1.0 : -1.0, 0.0);
+            var end = Offset.zero;
+            var curve = Curves.easeOutCubic;
+
+            var slideAnimation = Tween<Offset>(
+              begin: begin,
+              end: end,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: curve,
+              ),
+            );
+
+            // Fade untuk smoothness
+            var fadeAnimation = Tween<double>(
+              begin: 0.0,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Interval(0.2, 1.0, curve: Curves.easeOut),
+              ),
+            );
+
+            return SlideTransition(
+              position: slideAnimation,
+              child: FadeTransition(
+                opacity: fadeAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+        );
+}
+
 // Untuk transisi login yang smooth dan profesional
 class SmoothLoginRoute extends PageRouteBuilder {
   final Widget page;

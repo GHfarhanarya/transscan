@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../config/api_config.dart';
-import 'product_detail_page.dart' as pdp;
-import 'product_list_page.dart';
-import '../services/auth_service.dart';
-import '../widgets/custom_navbar.dart';
-import '../utils/page_transition.dart';
-import 'login_page.dart';
 
-class HomePage extends StatefulWidget {
+import '../config/api_config.dart';
+import '../services/auth_service.dart';
+import '../pages/product_detail_page.dart';
+import '../utils/page_transition.dart';
+
+class HomeContent extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomeContentState extends State<HomeContent> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = false;
   String? _searchError;
@@ -27,7 +25,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // Fungsi untuk scan barcode dari kamera
+  // Method scan barcode dan search (sama seperti di HomePage)
   Future<void> scanBarcode() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
@@ -39,45 +37,19 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
 
       if (barcodeScanRes == '-1') {
-        // Jika scan dibatalkan oleh pengguna
         setState(() => _isLoading = false);
         return;
       }
 
-      // Langsung fetch data dari server berdasarkan hasil scan
       await _fetchAndNavigate(barcodeScanRes, isBarcode: true);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Gagal melakukan scan. Pastikan kamera dapat mengakses kode barcode.',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.orange[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.all(16),
-          duration: Duration(seconds: 4),
-        ),
-      );
+      _showErrorSnackBar('Gagal melakukan scan. Pastikan kamera dapat mengakses kode barcode.');
     }
   }
 
-  // Fungsi untuk mencari produk dari input manual
   Future<void> _searchProduct() async {
-    // Reset error
     setState(() {
       _searchError = null;
     });
@@ -93,167 +65,63 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
     setState(() => _isLoading = true);
 
-    // Cek apakah input berupa angka (kemungkinan barcode) atau teks (nama produk)
     final bool isNumeric = double.tryParse(query) != null;
-
     await _fetchAndNavigate(query, isBarcode: isNumeric);
   }
 
-  // Fungsi utama untuk mengambil data dari server dan navigasi
-  Future<void> _fetchAndNavigate(String query,
-      {required bool isBarcode}) async {
-    String endpoint;
-    // Tentukan endpoint berdasarkan tipe query
-    if (isBarcode) {
-      endpoint = '/product/search/barcode/$query';
-    } else {
-      endpoint = '/product/search/name/$query';
-    }
-
+  Future<void> _fetchAndNavigate(String query, {required bool isBarcode}) async {
     try {
+      final String? token = await AuthService.getToken();
+      final String endpoint = isBarcode
+          ? '/product/search/barcode/$query'
+          : '/product/search/name/$query';
+      
       final url = Uri.parse('${ApiConfig.baseUrl}$endpoint');
-      final String? token = await AuthService
-          .getToken(); // Ambil token untuk otorisasi jika perlu
-
-      final res = await http.get(
+      final response = await http.get(
         url,
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: {'Authorization': 'Bearer $token'},
       );
 
       if (!mounted) return;
 
-      if (res.statusCode == 200) {
-        final data = json.decode(res.body);
-
-        if (isBarcode) {
-          // Jika pencarian berdasarkan barcode, langsung ke detail
-          Navigator.push(
-            context,
-            DetailPageRoute(
-              page: pdp.ProductDetailPage(product: data),
-            ),
-          );
-        } else {
-          // Jika pencarian berdasarkan nama, tampilkan list produk
-          if (data is List) {
-            // Jika response berupa array produk
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductListPage(
-                  products: List<Map<String, dynamic>>.from(data),
-                  searchQuery: query,
-                ),
-              ),
-            );
-          } else if (data is Map<String, dynamic>) {
-            // Jika hanya satu produk ditemukan
-            Navigator.push(
-              context,
-              DetailPageRoute(
-                page: pdp.ProductDetailPage(product: data),
-              ),
-            );
-          }
-        }
-      } else {
-        // Jika produk tidak ditemukan oleh server
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.search_off, color: Colors.white, size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Produk tidak ditemukan. Silakan coba dengan nama atau kode barcode yang lain.',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.grey[600],
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: EdgeInsets.all(16),
-            duration: Duration(seconds: 3),
-          ),
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> product = json.decode(response.body);
+        Navigator.push(
+          context,
+          DetailPageRoute(page: ProductDetailPage(product: product)),
         );
+      } else {
+        _showErrorSnackBar('Produk tidak ditemukan. Silakan coba dengan nama atau kode barcode yang lain.');
       }
     } catch (e) {
-      // Jika terjadi error koneksi, dll.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.wifi_off, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Gagal terhubung ke server. Periksa koneksi internet Anda.',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.red[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          margin: EdgeInsets.all(16),
-          duration: Duration(seconds: 4),
-        ),
-      );
+      if (!mounted) return;
+      _showErrorSnackBar('Gagal terhubung ke server. Periksa koneksi internet Anda.');
     } finally {
-      // Pastikan loading indicator selalu berhenti
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Logout'),
-          content: Text('Apakah Anda yakin ingin keluar?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context); // Close dialog
-                await AuthService.logout();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  ExitPageRoute(page: LoginPage()),
-                  (route) => false,
-                );
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: Text('Logout'),
-            ),
-          ],
-        );
-      },
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 3),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Container(
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -279,7 +147,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomNavbar(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(
@@ -326,6 +193,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
+                
                 SizedBox(height: isKeyboardVisible ? 8 : 16),
 
                 // Scan Button
@@ -335,10 +203,7 @@ class _HomePageState extends State<HomePage> {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFFE31837),
-                        Color(0xFFD10000),
-                      ],
+                      colors: [Color(0xFFE31837), Color(0xFFD10000)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
@@ -363,8 +228,7 @@ class _HomePageState extends State<HomePage> {
                         : Icon(Icons.qr_code_scanner, size: 24),
                     label: Text(
                       _isLoading ? 'Memuat...' : 'Scan Barcode',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
@@ -377,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-
+                
                 SizedBox(height: isKeyboardVisible ? 8 : 16),
 
                 // Divider
@@ -397,7 +261,7 @@ class _HomePageState extends State<HomePage> {
                     Expanded(child: Divider(color: Colors.grey[400])),
                   ],
                 ),
-
+                
                 SizedBox(height: isKeyboardVisible ? 16 : 30),
 
                 // Search Section
@@ -420,8 +284,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.search,
-                              color: Color(0xFFF44336), size: 24),
+                          Icon(Icons.search, color: Color(0xFFF44336), size: 24),
                           SizedBox(width: 8),
                           Text(
                             'Cari Produk',
@@ -451,50 +314,38 @@ class _HomePageState extends State<HomePage> {
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: _searchError != null
-                                    ? Colors.red
-                                    : Colors.grey[300]!,
+                                color: _searchError != null ? Colors.red : Colors.grey[300]!,
                                 width: _searchError != null ? 2 : 1,
                               ),
                               borderRadius: BorderRadius.circular(8),
-                              boxShadow: _searchError != null
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.red.withOpacity(0.1),
-                                        blurRadius: 6,
-                                        offset: Offset(0, 3),
-                                      ),
-                                    ]
-                                  : null,
+                              boxShadow: _searchError != null ? [
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
+                                ),
+                              ] : null,
                             ),
                             child: TextField(
                               controller: _searchController,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black87,
-                              ),
                               decoration: InputDecoration(
-                                hintText:
-                                    'Cari berdasarkan nama produk atau kode barcode...',
-                                hintStyle: TextStyle(
-                                  color: _searchError != null
-                                      ? Colors.red.shade400
-                                      : Colors.grey[500],
-                                  fontSize: 14,
-                                ),
+                                hintText: 'Masukkan nama produk atau barcode',
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 12),
-                                prefixIcon: Icon(
-                                  Icons.search,
-                                  color: _searchError != null
-                                      ? Colors.red
-                                      : Colors.grey[600],
-                                  size: 20,
-                                ),
+                                suffixIcon: _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          setState(() {
+                                            _searchController.clear();
+                                            _searchError = null;
+                                          });
+                                        },
+                                      )
+                                    : null,
                               ),
-                              onSubmitted: (_) => _searchProduct(),
-                              onChanged: (_) {
+                              onChanged: (value) {
                                 if (_searchError != null) {
                                   setState(() {
                                     _searchError = null;
@@ -505,19 +356,19 @@ class _HomePageState extends State<HomePage> {
                           ),
                           if (_searchError != null)
                             Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 12.0, top: 6),
+                              padding: const EdgeInsets.only(top: 8.0),
                               child: Text(
                                 _searchError!,
                                 style: TextStyle(
-                                  color: Colors.red.shade600,
-                                  fontSize: 13,
+                                  color: Colors.red,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
                         ],
                       ),
+
                       SizedBox(height: 16),
 
                       // Search Button
@@ -554,10 +405,8 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-
-                SizedBox(
-                  height: isKeyboardVisible ? 8 : 20,
-                ),
+                
+                SizedBox(height: isKeyboardVisible ? 8 : 20),
               ],
             ),
           ),

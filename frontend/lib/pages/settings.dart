@@ -654,8 +654,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  Color(0xFFE31837)!,
-                                  Color(0xFFD10000)!,
+                                  Color(0xFFE31837),
+                                  Color(0xFFD10000),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(12),

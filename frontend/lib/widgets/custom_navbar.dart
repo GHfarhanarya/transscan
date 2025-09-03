@@ -13,13 +13,42 @@ import '../config/api_config.dart';
 
 class CustomNavbar extends StatefulWidget {
   final int selectedIndex;
-  const CustomNavbar({Key? key, this.selectedIndex = 0}) : super(key: key);
+  final Function(int)? onIndexChanged;
+  
+  const CustomNavbar({
+    Key? key, 
+    this.selectedIndex = 0,
+    this.onIndexChanged,
+  }) : super(key: key);
 
   @override
   State<CustomNavbar> createState() => _CustomNavbarState();
 }
 
 class _CustomNavbarState extends State<CustomNavbar> {
+  void _navigateToPage(BuildContext context, int index) {
+    if (widget.onIndexChanged != null) {
+      widget.onIndexChanged!(index);
+    } else {
+      // Fallback ke navigation biasa jika tidak ada callback
+      switch (index) {
+        case 0:
+          Navigator.pushAndRemoveUntil(
+            context,
+            SettingsSlideRoute(page: HomePage(), isFromRight: false),
+            (route) => false,
+          );
+          break;
+        case 2:
+          Navigator.push(
+            context,
+            SettingsSlideRoute(
+                page: const SettingsPage(), isFromRight: true),
+          );
+          break;
+      }
+    }
+  }
 
   Future<void> scanBarcode() async {
     try {
@@ -111,13 +140,14 @@ class _CustomNavbarState extends State<CustomNavbar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 60,
+      height: 70,
       decoration: BoxDecoration(
         color: const Color(0xFFD10000),
         boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -125,30 +155,31 @@ class _CustomNavbarState extends State<CustomNavbar> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           // Home
-          IconButton(
-            icon: Icon(
-              Icons.home,
-              color: widget.selectedIndex == 0
-                  ? Color(0xFFFFFFFF)
-                  : Color(0xFFFF9088),
-              size: widget.selectedIndex == 0 ? 36 : 28,
-            ),
-            onPressed: () {
+          _buildNavItem(
+            icon: Icons.home,
+            label: 'Home',
+            index: 0,
+            isSelected: widget.selectedIndex == 0,
+            onTap: () {
               if (widget.selectedIndex != 0) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  SettingsSlideRoute(page: HomePage(), isFromRight: false),
-                  (route) => false,
-                );
+                _navigateToPage(context, 0);
               }
             },
           ),
 
           // Tombol Scan QR
           Container(
-            decoration: const BoxDecoration(
+            margin: EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                ),
+              ],
             ),
             child: IconButton(
               icon: const Icon(
@@ -161,25 +192,61 @@ class _CustomNavbarState extends State<CustomNavbar> {
           ),
 
           // Settings
-          IconButton(
-            icon: Icon(
-              Icons.person,
-              color: widget.selectedIndex == 2
-                  ? Color(0xFFFFFFFF)
-                  : Color(0xFFFF9088),
-              size: widget.selectedIndex == 2 ? 36 : 28,
-            ),
-            onPressed: () {
+          _buildNavItem(
+            icon: Icons.person,
+            label: 'Profile',
+            index: 2,
+            isSelected: widget.selectedIndex == 2,
+            onTap: () {
               if (widget.selectedIndex != 2) {
-                Navigator.push(
-                  context,
-                  SettingsSlideRoute(
-                      page: const SettingsPage(), isFromRight: true),
-                );
+                _navigateToPage(context, 2);
               }
             },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : Color(0xFFFF9088),
+                size: isSelected ? 28 : 24,
+              ),
+            ),
+            SizedBox(height: 4),
+            AnimatedDefaultTextStyle(
+              duration: Duration(milliseconds: 200),
+              style: TextStyle(
+                color: isSelected ? Colors.white : Color(0xFFFF9088),
+                fontSize: isSelected ? 12 : 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+              child: Text(label),
+            ),
+          ],
+        ),
       ),
     );
   }
