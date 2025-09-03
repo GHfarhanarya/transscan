@@ -1,0 +1,80 @@
+**/.env
+**/.env.*
+!**/.env.example
+*.local
+
+
+# Folder Dependensi
+# Folder dependensi untuk proyek Node.js
+/backend/node_modules/
+/web-admin/node_modules/
+
+# Folder dependensi untuk proyek Flutter/Dart
+/frontend/.dart_tool/
+/frontend/.pub-cache/
+/frontend/.packages
+
+
+# Folder Build & Output
+# Folder output untuk backend dan web-admin
+/backend/dist/
+/web-admin/dist/
+/web-admin/dist-ssr/
+
+# Folder output untuk Flutter (frontend)
+/frontend/build/
+# Symbolication and Obfuscation files
+/frontend/app.*.symbols
+/frontend/app.*.map.json
+# Android Studio build artifacts
+/frontend/android/app/debug/
+/frontend/android/app/profile/
+/frontend/android/app/release/
+
+
+# Log Files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+
+# Konfigurasi IDE & Editor
+# Visual Studio Code
+.vscode/*
+#agar tim bisa berbagi ekstensi yang direkomendasikan
+!.vscode/extensions.json
+
+# IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Lain-lain
+.atom/
+.history
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.sw?
+
+
+# Aturan Spesifik Flutter/Dart
+/frontend/doc/api/
+/frontend/ios/Flutter/.last_build_id
+.flutter-plugins
+.flutter-plugins-dependencies
+
+
+# File Sistem Operasi & Lain-lain
+.DS_Store
+Thumbs.db
+*.class
+*.pyc
+migrate_working_dir/
