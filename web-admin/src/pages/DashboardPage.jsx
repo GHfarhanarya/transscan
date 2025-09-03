@@ -53,11 +53,11 @@ const SpinnerIcon = (props) => (
 );
 
 // --- Konfigurasi API ---
-const API_URL = 'http://35.219.66.90'; 
+const apiUrl = import.meta.env.VITE_API_URL; 
 const PAGE_SIZE_OPTIONS = [5, 25, 50];
 
 // --- Socket.IO Connection ---
-const socket = io(API_URL, {
+const socket = io(apiUrl, {
     autoConnect: false // Akan connect manual ketika user login
 });
 
@@ -280,7 +280,7 @@ export default function DashboardPage() {
                 return;
             }
 
-            const response = await fetch(`${API_URL}/users`, {
+            const response = await fetch(`${apiUrl}/users`, {
                 headers: {
                     // Sertakan token di Authorization header dengan format yang benar
                     'Authorization': token
@@ -315,7 +315,7 @@ export default function DashboardPage() {
         const fetchLogs = async () => {
             try {
                 const token = localStorage.getItem('jwtToken');
-                const res = await fetch(`${API_URL}/activity-logs`, {
+                const res = await fetch(`${apiUrl}/activity-logs`, {
                     headers: {
                         'Authorization': token
                     }
@@ -424,11 +424,11 @@ export default function DashboardPage() {
     };
 
     const handleSaveUser = async (formData) => {
-        let url = `${API_URL}/users`;
+        let url = `${apiUrl}/users`;
         let method = 'POST';
 
         if (modalMode === 'edit') {
-            url = `${API_URL}/users/${formData.employee_id}`;
+            url = `${apiUrl}/users/${formData.employee_id}`;
             method = 'PUT';
         }
 
@@ -463,7 +463,7 @@ export default function DashboardPage() {
             return;
         }
 
-        const response = await fetch(`${API_URL}/users/${employeeId}`, {
+        const response = await fetch(`${apiUrl}/users/${employeeId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': token

@@ -13,6 +13,8 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
@@ -21,7 +23,7 @@ function LoginPage() {
     try {
       // kirim data ke endpoint
       const response = await axios.post(
-        'http://35.219.66.90/admin/login',
+        `${apiUrl}/admin/login`,
         { employee_id: employeeId, password }
       );
 
