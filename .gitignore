@@ -6,8 +6,8 @@
 
 # Folder Dependensi
 # Folder dependensi untuk proyek Node.js
-/backend/node_modules/
-/web-admin/node_modules/
+/backend/node_modules
+/web-admin/node_modules
 
 # Folder dependensi untuk proyek Flutter/Dart
 /frontend/.dart_tool/
